@@ -23,21 +23,57 @@ export default function HomePage() {
   const [products, setProducts] = useState([])
   const [showInstall, setShowInstall] = useState(true)
   const [showManual, setShowManual] = useState(false)
+  const [installPrompt, setInstallPrompt] = useState(null)
+  const [isInstalled, setIsInstalled] = useState(false)
 
   useEffect(() => {
     storage.getProducts().then((data) => setProducts(data.filter((p) => p.isActive !== false))).catch(() => setProducts([]))
+
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true
+    setIsInstalled(isStandalone)
+
+    if (window.deferredInstallPrompt) {
+      setInstallPrompt(window.deferredInstallPrompt)
+    }
+
+    const handlePromptReady = () => {
+      setInstallPrompt(window.deferredInstallPrompt)
+    }
+
+    const handleAppInstalled = () => {
+      setInstallPrompt(null)
+      setIsInstalled(true)
+      setShowInstall(false)
+      window.deferredInstallPrompt = null
+    }
+
+    window.addEventListener('installpromptready', handlePromptReady)
+    window.addEventListener('appinstalled', handleAppInstalled)
+
+    return () => {
+      window.removeEventListener('installpromptready', handlePromptReady)
+      window.removeEventListener('appinstalled', handleAppInstalled)
+    }
   }, [])
 
   const handleInstall = async () => {
-    const promptEvent = window.deferredInstallPrompt
-    console.log('Install clicked, promptEvent:', promptEvent)
-    if (promptEvent) {
-      promptEvent.prompt()
-      await promptEvent.userChoice
-      window.deferredInstallPrompt = null
-    } else {
+    const promptEvent = installPrompt || window.deferredInstallPrompt
+    if (!promptEvent) {
       setShowManual(true)
+      return
     }
+
+    promptEvent.prompt()
+    const { outcome } = await promptEvent.userChoice
+    if (outcome === 'accepted') {
+      console.log('User accepted the install prompt')
+    } else {
+      console.log('User dismissed the install prompt')
+    }
+    setInstallPrompt(null)
+    window.deferredInstallPrompt = null
   }
 
   const isSamsung = /SamsungBrowser/i.test(navigator.userAgent)
@@ -222,7 +258,7 @@ export default function HomePage() {
       </section>
 
       {/* Mobile Install Banner */}
-      {showInstall && (
+      {showInstall && !isInstalled && (
         <div className="fixed bottom-0 inset-x-0 z-[60] bg-white border-t border-gray-100 shadow-lg px-4 py-3 md:hidden">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gold-50 flex items-center justify-center flex-shrink-0">
@@ -231,7 +267,7 @@ export default function HomePage() {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-black">تطبيق Beauty Touch</p>
               <p className="text-xs text-black-light">
-                {isChrome && window.deferredInstallPrompt
+                {isChrome && installPrompt
                   ? 'اضغط تحميل للتثبيت مباشرة'
                   : isIOS
                   ? 'افتح من Safari ثم Share → Add to Home Screen'
