@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ShoppingBag, Heart, Menu, X, ClipboardList, Download, MoreVertical } from 'lucide-react'
 import Logo from './Logo.jsx'
@@ -7,21 +7,58 @@ import { useCart } from '../context/CartContext.jsx'
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [showManual, setShowManual] = useState(false)
+  const [installPrompt, setInstallPrompt] = useState(null)
+  const [isInstalled, setIsInstalled] = useState(false)
   const { cartCount, wishlist } = useCart()
   const location = useLocation()
 
-  const handleInstall = async () => {
-    const promptEvent = window.deferredInstallPrompt || window.lastBeforeInstallPrompt
-    if (promptEvent) {
-      promptEvent.prompt()
-      await promptEvent.userChoice
+  useEffect(() => {
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true
+    setIsInstalled(isStandalone)
+
+    if (window.deferredInstallPrompt) {
+      setInstallPrompt(window.deferredInstallPrompt)
+    }
+
+    const handlePromptReady = () => {
+      setInstallPrompt(window.deferredInstallPrompt)
+    }
+
+    const handleAppInstalled = () => {
+      setInstallPrompt(null)
+      setIsInstalled(true)
       window.deferredInstallPrompt = null
-      window.lastBeforeInstallPrompt = null
-      setMenuOpen(false)
-    } else {
+    }
+
+    window.addEventListener('installpromptready', handlePromptReady)
+    window.addEventListener('appinstalled', handleAppInstalled)
+
+    return () => {
+      window.removeEventListener('installpromptready', handlePromptReady)
+      window.removeEventListener('appinstalled', handleAppInstalled)
+    }
+  }, [])
+
+  const handleInstall = async () => {
+    const promptEvent = installPrompt || window.deferredInstallPrompt
+    if (!promptEvent) {
       setShowManual(true)
       setMenuOpen(false)
+      return
     }
+
+    promptEvent.prompt()
+    const { outcome } = await promptEvent.userChoice
+    if (outcome === 'accepted') {
+      console.log('User accepted the install prompt')
+    } else {
+      console.log('User dismissed the install prompt')
+    }
+    setInstallPrompt(null)
+    window.deferredInstallPrompt = null
+    setMenuOpen(false)
   }
 
   const isAdmin = location.pathname.startsWith('/admin')
@@ -131,10 +168,11 @@ export default function Navbar() {
             <div className="border-t border-gray-100 mt-2 pt-2">
               <button
                 onClick={handleInstall}
-                className="w-full py-2.5 px-3 text-sm font-medium text-gold bg-gold-50 hover:bg-gold/10 rounded-lg transition-colors flex items-center justify-center gap-2"
+                disabled={isInstalled}
+                className="w-full py-2.5 px-3 text-sm font-medium text-gold bg-gold-50 hover:bg-gold/10 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                تحميل التطبيق
+                {isInstalled ? 'تم تثبيت التطبيق' : 'تحميل التطبيق'}
               </button>
             </div>
           </nav>

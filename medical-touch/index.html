@@ -16,11 +16,12 @@
       window.addEventListener('beforeinstallprompt', function(e) {
         e.preventDefault();
         window.deferredInstallPrompt = e;
+        window.dispatchEvent(new Event('installpromptready'));
         console.log('beforeinstallprompt captured');
       });
-      window.addEventListener('load', function() {
-        console.log('User agent:', navigator.userAgent);
-        console.log('deferredInstallPrompt:', window.deferredInstallPrompt);
+      window.addEventListener('appinstalled', function() {
+        window.deferredInstallPrompt = null;
+        console.log('PWA installed');
       });
     </script>
   </head>

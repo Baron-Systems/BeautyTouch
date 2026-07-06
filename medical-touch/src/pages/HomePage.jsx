@@ -22,6 +22,7 @@ const brands = [
 export default function HomePage() {
   const [products, setProducts] = useState([])
   const [showInstall, setShowInstall] = useState(true)
+  const [showManual, setShowManual] = useState(false)
 
   useEffect(() => {
     storage.getProducts().then((data) => setProducts(data.filter((p) => p.isActive !== false))).catch(() => setProducts([]))
@@ -29,10 +30,13 @@ export default function HomePage() {
 
   const handleInstall = async () => {
     const promptEvent = window.deferredInstallPrompt
+    console.log('Install clicked, promptEvent:', promptEvent)
     if (promptEvent) {
       promptEvent.prompt()
       await promptEvent.userChoice
       window.deferredInstallPrompt = null
+    } else {
+      setShowManual(true)
     }
   }
 
@@ -227,7 +231,7 @@ export default function HomePage() {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-black">تطبيق Beauty Touch</p>
               <p className="text-xs text-black-light">
-                {isChrome
+                {isChrome && window.deferredInstallPrompt
                   ? 'اضغط تحميل للتثبيت مباشرة'
                   : isIOS
                   ? 'افتح من Safari ثم Share → Add to Home Screen'
@@ -246,6 +250,32 @@ export default function HomePage() {
               aria-label="إغلاق"
             >
               <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Install Instructions Modal */}
+      {showManual && (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center p-4 bg-black/50 md:hidden" onClick={() => setShowManual(false)}>
+          <div className="bg-white rounded-card shadow-xl w-full max-w-sm p-5" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-black mb-3">إضافة للشاشة الرئيسية</h3>
+            {isIOS ? (
+              <ol className="text-sm text-black-light space-y-2 mb-4">
+                <li>1. اضغط زر <span className="font-bold text-black">Share</span> في أسفل المتصفح</li>
+                <li>2. اختر <span className="font-bold text-black">"Add to Home Screen"</span></li>
+                <li>3. اضغط <span className="font-bold text-black">"Add"</span></li>
+              </ol>
+            ) : (
+              <ol className="text-sm text-black-light space-y-2 mb-4">
+                <li>1. افتح الموقع في <span className="font-bold text-black">Google Chrome</span></li>
+                <li>2. اضغط زر القائمة <span className="font-bold text-black">⋮</span></li>
+                <li>3. اختر <span className="font-bold text-black">"Add to Home screen"</span> أو <span className="font-bold text-black">"Install app"</span></li>
+                <li>4. اضغط <span className="font-bold text-black">"Install"</span></li>
+              </ol>
+            )}
+            <button onClick={() => setShowManual(false)} className="w-full btn-gold py-2.5 text-sm">
+              فهمت
             </button>
           </div>
         </div>
