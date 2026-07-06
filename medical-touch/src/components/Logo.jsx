@@ -2,17 +2,16 @@ import React from 'react'
 
 export default function Logo({ size = 'default' }) {
   const isSmall = size === 'small'
-  const width = isSmall ? 110 : 150
+  const height = isSmall ? 44 : 56
 
   return (
-    <div className="flex items-center select-none" style={{ paddingTop: 4, paddingBottom: 4 }}>
+    <div className="flex items-center select-none">
       <svg
-        width={width}
-        viewBox="0 0 240 180"
+        height={height}
+        viewBox="0 0 240 110"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className="block"
-        style={{ overflow: 'visible' }}
       >
         <defs>
           <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
