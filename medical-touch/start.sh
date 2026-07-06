@@ -1,30 +1,44 @@
 #!/bin/bash
 
-# Beauty Touch - Build & Start Script
+# Beauty Touch - Self-Contained Build & Start Script
 # Usage: chmod +x start.sh && ./start.sh
 
 set -e
+
+# Detect if we are in the parent folder (e.g. BeautyTouch)
+if [ -d "medical-touch" ]; then
+  cd medical-touch
+fi
 
 echo "========================================"
 echo "    Beauty Touch - Build & Start"
 echo "========================================"
 echo ""
 
-# Step 1: Install frontend dependencies and build
-echo "[1/3] Installing frontend dependencies..."
-npm install
+# Step 1: Install frontend dependencies
+echo "[1/4] Installing frontend dependencies..."
+if [ ! -d "node_modules" ]; then
+  npm install
+else
+  echo "  -> node_modules found, skipping install"
+fi
 
-echo "[1/3] Building frontend..."
+# Step 2: Build frontend
+echo "[2/4] Building frontend..."
 npm run build
 
-# Step 2: Install server dependencies
-echo "[2/3] Installing server dependencies..."
+# Step 3: Install server dependencies
+echo "[3/4] Installing server dependencies..."
 cd server
-npm install
+if [ ! -d "node_modules" ]; then
+  npm install
+else
+  echo "  -> node_modules found, skipping install"
+fi
 cd ..
 
-# Step 3: Start server
-echo "[3/3] Starting server..."
+# Step 4: Start server
+echo "[4/4] Starting server..."
 echo ""
 echo "========================================"
 echo "  App ready at: http://localhost:3001"
