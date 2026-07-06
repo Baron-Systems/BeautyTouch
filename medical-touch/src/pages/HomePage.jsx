@@ -34,6 +34,11 @@ export default function HomePage() {
       window.navigator.standalone === true
     setIsInstalled(isStandalone)
 
+    const hasSeenInstallBanner = localStorage.getItem('hasSeenInstallBanner')
+    if (hasSeenInstallBanner) {
+      setShowInstall(false)
+    }
+
     if (window.deferredInstallPrompt) {
       setInstallPrompt(window.deferredInstallPrompt)
     }
@@ -46,6 +51,7 @@ export default function HomePage() {
       setInstallPrompt(null)
       setIsInstalled(true)
       setShowInstall(false)
+      localStorage.setItem('hasSeenInstallBanner', 'true')
       window.deferredInstallPrompt = null
     }
 
@@ -281,7 +287,10 @@ export default function HomePage() {
               تحميل
             </button>
             <button
-              onClick={() => setShowInstall(false)}
+              onClick={() => {
+                setShowInstall(false)
+                localStorage.setItem('hasSeenInstallBanner', 'true')
+              }}
               className="p-1.5 text-black-light hover:text-black transition-colors flex-shrink-0"
               aria-label="إغلاق"
             >
