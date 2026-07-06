@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: 'Cairo', 'Inter', sans-serif;
+    background-color: #FFFFFF;
+    color: #111111;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #C9A227 transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #C9A227;
+    border-radius: 3px;
+  }
+}
+
+@layer components {
+  .btn-gold {
+    @apply bg-gold text-white font-medium px-6 py-3 rounded-button transition-all duration-300 ease-luxury;
+    background: linear-gradient(135deg, #C9A227 0%, #B08D1F 100%);
+  }
+  .btn-gold:hover {
+    background: linear-gradient(135deg, #D4B84A 0%, #C9A227 100%);
+    box-shadow: 0 4px 24px rgba(201, 162, 39, 0.3);
+    transform: translateY(-1px);
+  }
+  .card-luxury {
+    @apply bg-white rounded-card shadow-card transition-all duration-300 ease-luxury;
+  }
+  .card-luxury:hover {
+    @apply shadow-card-hover;
+    transform: translateY(-4px);
+  }
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #C9A227 0%, #B08D1F 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
