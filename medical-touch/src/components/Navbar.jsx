@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ShoppingBag, Heart, Menu, X, ClipboardList, Download } from 'lucide-react'
+import { ShoppingBag, Heart, Menu, X, ClipboardList, Download, MoreVertical } from 'lucide-react'
 import Logo from './Logo.jsx'
 import { useCart } from '../context/CartContext.jsx'
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showManual, setShowManual] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState(null)
   const { cartCount, wishlist } = useCart()
   const location = useLocation()
@@ -20,11 +21,15 @@ export default function Navbar() {
   }, [])
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return
-    deferredPrompt.prompt()
-    await deferredPrompt.userChoice
-    setDeferredPrompt(null)
-    setMenuOpen(false)
+    if (deferredPrompt) {
+      deferredPrompt.prompt()
+      await deferredPrompt.userChoice
+      setDeferredPrompt(null)
+      setMenuOpen(false)
+    } else {
+      setShowManual(true)
+      setMenuOpen(false)
+    }
   }
 
   const isAdmin = location.pathname.startsWith('/admin')
@@ -134,17 +139,30 @@ export default function Navbar() {
             <div className="border-t border-gray-100 mt-2 pt-2">
               <button
                 onClick={handleInstall}
-                disabled={!deferredPrompt}
-                className="w-full py-2.5 px-3 text-sm font-medium text-gold bg-gold-50 hover:bg-gold/10 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-2.5 px-3 text-sm font-medium text-gold bg-gold-50 hover:bg-gold/10 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 تحميل التطبيق
               </button>
-              {!deferredPrompt && (
-                <p className="text-[10px] text-center text-black-light mt-1">افتح المتجر من Chrome/Safari</p>
-              )}
             </div>
           </nav>
+        </div>
+      )}
+
+      {/* Manual Install Modal */}
+      {showManual && (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center p-4 bg-black/50 md:hidden" onClick={() => setShowManual(false)}>
+          <div className="bg-white rounded-card shadow-xl w-full max-w-sm p-5" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-black mb-3">إضافة للشاشة الرئيسية</h3>
+            <ol className="text-sm text-black-light space-y-2 mb-4">
+              <li>1. اضغط زر القائمة <MoreVertical className="w-4 h-4 inline" /> في المتصفح</li>
+              <li>2. اختر <span className="font-bold text-black">"Add to Home screen"</span> أو <span className="font-bold text-black">"Install app"</span></li>
+              <li>3. اضغط <span className="font-bold text-black">"Install"</span></li>
+            </ol>
+            <button onClick={() => setShowManual(false)} className="w-full btn-gold py-2.5 text-sm">
+              فهمت
+            </button>
+          </div>
         </div>
       )}
     </header>
