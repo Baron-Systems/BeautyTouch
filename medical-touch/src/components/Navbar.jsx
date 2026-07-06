@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ShoppingBag, Heart, Menu, X, ClipboardList, Download, MoreVertical } from 'lucide-react'
 import Logo from './Logo.jsx'
@@ -7,24 +7,16 @@ import { useCart } from '../context/CartContext.jsx'
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [showManual, setShowManual] = useState(false)
-  const [deferredPrompt, setDeferredPrompt] = useState(null)
   const { cartCount, wishlist } = useCart()
   const location = useLocation()
 
-  useEffect(() => {
-    const handler = (e) => {
-      e.preventDefault()
-      setDeferredPrompt(e)
-    }
-    window.addEventListener('beforeinstallprompt', handler)
-    return () => window.removeEventListener('beforeinstallprompt', handler)
-  }, [])
-
   const handleInstall = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt()
-      await deferredPrompt.userChoice
-      setDeferredPrompt(null)
+    const promptEvent = window.deferredInstallPrompt || window.lastBeforeInstallPrompt
+    if (promptEvent) {
+      promptEvent.prompt()
+      await promptEvent.userChoice
+      window.deferredInstallPrompt = null
+      window.lastBeforeInstallPrompt = null
       setMenuOpen(false)
     } else {
       setShowManual(true)
