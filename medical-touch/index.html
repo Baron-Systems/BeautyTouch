@@ -16,6 +16,11 @@
       window.addEventListener('beforeinstallprompt', function(e) {
         e.preventDefault();
         window.deferredInstallPrompt = e;
+        console.log('beforeinstallprompt captured');
+      });
+      window.addEventListener('load', function() {
+        console.log('User agent:', navigator.userAgent);
+        console.log('deferredInstallPrompt:', window.deferredInstallPrompt);
       });
     </script>
   </head>

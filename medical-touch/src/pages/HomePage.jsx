@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronLeft, Sparkles, ShoppingBag, MessageCircle, TrendingUp, Star, Zap } from 'lucide-react'
+import { ChevronLeft, Sparkles, ShoppingBag, MessageCircle, TrendingUp, Star, Zap, Download, X } from 'lucide-react'
 import ProductCard from '../components/ProductCard.jsx'
 import { categories } from '../data/categories.js'
 import { storage } from '../services/storage.js'
@@ -21,10 +21,24 @@ const brands = [
 
 export default function HomePage() {
   const [products, setProducts] = useState([])
+  const [showInstall, setShowInstall] = useState(true)
 
   useEffect(() => {
     storage.getProducts().then((data) => setProducts(data.filter((p) => p.isActive !== false))).catch(() => setProducts([]))
   }, [])
+
+  const handleInstall = async () => {
+    const promptEvent = window.deferredInstallPrompt
+    if (promptEvent) {
+      promptEvent.prompt()
+      await promptEvent.userChoice
+      window.deferredInstallPrompt = null
+    }
+  }
+
+  const isSamsung = /SamsungBrowser/i.test(navigator.userAgent)
+  const isChrome = /Chrome/i.test(navigator.userAgent) && !isSamsung
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
 
   const bestSellers = products.filter((p) => p.isBestSeller).slice(0, 4)
   const newArrivals = products.filter((p) => p.isNew).slice(0, 4)
@@ -202,6 +216,40 @@ export default function HomePage() {
           </a>
         </div>
       </section>
+
+      {/* Mobile Install Banner */}
+      {showInstall && (
+        <div className="fixed bottom-0 inset-x-0 z-[60] bg-white border-t border-gray-100 shadow-lg px-4 py-3 md:hidden">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gold-50 flex items-center justify-center flex-shrink-0">
+              <Download className="w-5 h-5 text-gold" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-black">تطبيق Beauty Touch</p>
+              <p className="text-xs text-black-light">
+                {isChrome
+                  ? 'اضغط تحميل للتثبيت مباشرة'
+                  : isIOS
+                  ? 'افتح من Safari ثم Share → Add to Home Screen'
+                  : 'افتح من Chrome للتثبيت المباشر'}
+              </p>
+            </div>
+            <button
+              onClick={handleInstall}
+              className="btn-gold text-xs px-4 py-2 flex-shrink-0"
+            >
+              تحميل
+            </button>
+            <button
+              onClick={() => setShowInstall(false)}
+              className="p-1.5 text-black-light hover:text-black transition-colors flex-shrink-0"
+              aria-label="إغلاق"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
