@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, Pencil, Trash2, LogOut, Package, Power, ClipboardList, Lock, X } from 'lucide-react'
+import { Plus, Pencil, Trash2, LogOut, Package, Power, ClipboardList, Lock, X, Search } from 'lucide-react'
 import { storage } from '../../services/storage.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import Logo from '../../components/Logo.jsx'
@@ -14,6 +14,7 @@ export default function AdminProductsPage() {
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     storage.getProducts().then(setProducts).catch(() => setProducts([]))
@@ -113,7 +114,20 @@ export default function AdminProductsPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl font-bold text-black mb-6">إدارة المنتجات</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h1 className="text-2xl font-bold text-black">إدارة المنتجات</h1>
+          <div className="relative max-w-xs">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black-light" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="بحث عن منتج..."
+              className="w-full pr-9 pl-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold"
+              dir="rtl"
+            />
+          </div>
+        </div>
 
         {products.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-card shadow-card">
@@ -138,7 +152,9 @@ export default function AdminProductsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {products.map((product) => (
+                  {products
+                    .filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                    .map((product) => (
                     <tr key={product.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <img
