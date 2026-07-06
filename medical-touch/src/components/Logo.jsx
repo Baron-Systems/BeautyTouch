@@ -88,45 +88,6 @@ export default function Logo({ size = 'default' }) {
           />
         </g>
 
-        {/* Beauty Touch text */}
-        <text
-          x="120"
-          y="118"
-          fontFamily="'Cinzel', 'Times New Roman', serif"
-          fontSize="15"
-          fontWeight="400"
-          fill="url(#goldGrad)"
-          textAnchor="middle"
-          letterSpacing="3"
-        >Beauty Touch</text>
-
-        {/* Divider lines with flower */}
-        <line x1="45" y1="134" x2="105" y2="134" stroke="#D4B84A" strokeWidth="0.6" />
-        <line x1="135" y1="134" x2="195" y2="134" stroke="#D4B84A" strokeWidth="0.6" />
-
-        {/* Flower / Lotus */}
-        <g transform="translate(120, 134)">
-          {/* Center dot */}
-          <circle cx="0" cy="0" r="1.5" fill="#B08D1F" />
-          {/* Petals */}
-          <ellipse cx="0" cy="-5" rx="3" ry="5" fill="none" stroke="#C9A227" strokeWidth="0.6" />
-          <ellipse cx="4.5" cy="-2" rx="3" ry="5" transform="rotate(72 4.5 -2)" fill="none" stroke="#C9A227" strokeWidth="0.6" />
-          <ellipse cx="3" cy="4" rx="3" ry="5" transform="rotate(144 3 4)" fill="none" stroke="#C9A227" strokeWidth="0.6" />
-          <ellipse cx="-3" cy="4" rx="3" ry="5" transform="rotate(216 -3 4)" fill="none" stroke="#C9A227" strokeWidth="0.6" />
-          <ellipse cx="-4.5" cy="-2" rx="3" ry="5" transform="rotate(288 -4.5 -2)" fill="none" stroke="#C9A227" strokeWidth="0.6" />
-        </g>
-
-        {/* Arabic tagline */}
-        <text
-          x="120"
-          y="160"
-          fontFamily="'Cairo', sans-serif"
-          fontSize="11"
-          fontWeight="400"
-          fill="#B08D1F"
-          textAnchor="middle"
-          letterSpacing="0.5"
-        >لمسة الجمال ... تبدأ من هنا</text>
       </svg>
     </div>
   )
