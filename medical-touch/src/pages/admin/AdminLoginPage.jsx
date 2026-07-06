@@ -11,10 +11,10 @@ export default function AdminLoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    const success = login(password)
+    const success = await login(password)
     if (success) {
       navigate('/admin/products')
     } else {
