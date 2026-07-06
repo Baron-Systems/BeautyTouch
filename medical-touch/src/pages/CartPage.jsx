@@ -78,6 +78,13 @@ export default function CartPage() {
     return Object.keys(errs).length === 0
   }
 
+  const handleCustomerChange = (field, value) => {
+    const updated = { ...customer, [field]: value }
+    setCustomer(updated)
+    localStorage.setItem('beauty_touch_customer', JSON.stringify(updated))
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }))
+  }
+
   const handleSubmitOrder = async () => {
     if (!validate()) return
     setSubmitting(true)
@@ -225,7 +232,7 @@ export default function CartPage() {
                   <input
                     type="text"
                     value={customer.name}
-                    onChange={(e) => { setCustomer((p) => ({ ...p, name: e.target.value })); if (errors.name) setErrors((prev) => ({ ...prev, name: undefined })) }}
+                    onChange={(e) => handleCustomerChange('name', e.target.value)}
                     placeholder="محمد أحمد"
                     className={`w-full pr-9 pl-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold ${errors.name ? 'border-red-300' : 'border-gray-200'}`}
                     dir="rtl"
@@ -241,7 +248,7 @@ export default function CartPage() {
                   <input
                     type="tel"
                     value={customer.phone}
-                    onChange={(e) => { setCustomer((p) => ({ ...p, phone: e.target.value })); if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined })) }}
+                    onChange={(e) => handleCustomerChange('phone', e.target.value)}
                     placeholder="0595330105"
                     className={`w-full pr-9 pl-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold ${errors.phone ? 'border-red-300' : 'border-gray-200'}`}
                     dir="rtl"
@@ -257,7 +264,7 @@ export default function CartPage() {
                   <input
                     type="text"
                     value={customer.address}
-                    onChange={(e) => { setCustomer((p) => ({ ...p, address: e.target.value })); if (errors.address) setErrors((prev) => ({ ...prev, address: undefined })) }}
+                    onChange={(e) => handleCustomerChange('address', e.target.value)}
                     placeholder="فلسطين - رام الله - شارع الرشيد"
                     className={`w-full pr-9 pl-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold ${errors.address ? 'border-red-300' : 'border-gray-200'}`}
                     dir="rtl"
