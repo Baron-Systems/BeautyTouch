@@ -253,9 +253,7 @@ export default function HomePage() {
             تسوق بسهولة وأمان، وأرسل طلبك مباشرة عبر واتساب وسنقوم بالتواصل معك فوراً لتأكيد الطلب.
           </p>
           <a
-            href="https://wa.me/970595330105"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="whatsapp://send?phone=+972595330105"
             className="inline-block bg-white text-gold font-bold px-8 py-3 rounded-button hover:bg-white/90 transition-colors"
           >
             تواصل عبر واتساب

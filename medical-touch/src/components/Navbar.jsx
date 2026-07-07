@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { ShoppingBag, Heart, Menu, X, ClipboardList, Download, MoreVertical } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { ShoppingBag, Heart, Menu, X, ClipboardList, Download, MoreVertical, ArrowLeft, Sun, Moon } from 'lucide-react'
 import Logo from './Logo.jsx'
 import { useCart } from '../context/CartContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -10,7 +11,9 @@ export default function Navbar() {
   const [installPrompt, setInstallPrompt] = useState(null)
   const [isInstalled, setIsInstalled] = useState(false)
   const { cartCount, wishlist } = useCart()
+  const { theme, toggleTheme } = useTheme()
   const location = useLocation()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const isStandalone =
@@ -83,10 +86,21 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
-            <Logo />
-          </Link>
+          {/* Logo + Back */}
+          <div className="flex items-center gap-2">
+            {location.pathname !== '/' && (
+              <button
+                onClick={() => navigate(-1)}
+                className="md:hidden p-2 rounded-full hover:bg-gray-50 transition-colors"
+                aria-label="رجوع"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
+            <Link to="/" className="flex-shrink-0">
+              <Logo />
+            </Link>
+          </div>
 
           {/* Desktop Nav */}
           {!isAdmin && (
@@ -140,6 +154,13 @@ export default function Navbar() {
                 </Link>
               </>
             )}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-gray-50 transition-colors"
+              aria-label={theme === 'dark' ? 'الوضع النهاري' : 'الوضع الليلي'}
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className="lg:hidden p-2 rounded-full hover:bg-gray-50 transition-colors"

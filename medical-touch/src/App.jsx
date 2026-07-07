@@ -1,7 +1,8 @@
-import React from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { CartProvider } from './context/CartContext.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
+import { ThemeProvider, useTheme } from './context/ThemeContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
 import HomePage from './pages/HomePage.jsx'
@@ -21,9 +22,15 @@ function AdminRoute({ children }) {
 }
 
 function AppContent() {
+  const { theme } = useTheme()
+  const location = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [location.pathname])
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className={`min-h-screen flex flex-col bg-white ${theme === 'dark' ? 'dark' : ''}`}>
       <Routes>
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -88,10 +95,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <AppContent />
-      </CartProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+          <AppContent />
+        </CartProvider>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }

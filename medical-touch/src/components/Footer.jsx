@@ -40,9 +40,7 @@ export default function Footer() {
             <h3 className="font-semibold text-black text-sm">تواصل معنا</h3>
             <div className="flex flex-col gap-3">
               <a
-                href="https://wa.me/970595330105"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="whatsapp://send?phone=+972595330105"
                 className="flex items-center gap-2 text-sm text-black-light hover:text-gold transition-colors"
               >
                 <MessageCircle className="w-4 h-4" />
