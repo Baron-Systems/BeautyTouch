@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ChevronLeft, Sparkles, ShoppingBag, MessageCircle, TrendingUp, Star, Zap, Download, X } from 'lucide-react'
+import { ChevronLeft, Sparkles, ShoppingBag, MessageCircle, TrendingUp, Star, Zap, Download, X, Search } from 'lucide-react'
 import ProductCard from '../components/ProductCard.jsx'
 import { categories } from '../data/categories.js'
 import { storage } from '../services/storage.js'
