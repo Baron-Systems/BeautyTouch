@@ -113,9 +113,11 @@ export default function AdminProductForm() {
     const productData = {
       ...form,
       price: Number(form.price),
-      discountedPrice: form.discountedPrice ? Number(form.discountedPrice) : null,
+      discountedPrice: form.discountedPrice && form.discountedPrice.trim() !== '' ? Number(form.discountedPrice) : null,
       subcategory: form.subcategory || null,
     }
+
+    console.log('Submitting product:', productData)
 
     if (isEdit) {
       await storage.updateProduct(productId, productData)
