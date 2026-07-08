@@ -49,16 +49,51 @@ export default function AdminProductForm() {
 
   const selectedCategory = categories.find((c) => c.slug === form.category)
 
-  const handleImageUpload = (e) => {
+  const compressImage = (file, maxWidth = 800, quality = 0.7) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let width = img.width
+          let height = img.height
+
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width
+            width = maxWidth
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, width, height)
+          resolve(canvas.toDataURL('image/jpeg', quality))
+        }
+        img.src = e.target.result
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
 
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setPreviewImage(reader.result)
-      setForm((prev) => ({ ...prev, image: reader.result }))
+    try {
+      const compressedImage = await compressImage(file, 800, 0.7)
+      setPreviewImage(compressedImage)
+      setForm((prev) => ({ ...prev, image: compressedImage }))
+    } catch (error) {
+      console.error('Error compressing image:', error)
+      // Fallback to original if compression fails
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreviewImage(reader.result)
+        setForm((prev) => ({ ...prev, image: reader.result }))
+      }
+      reader.readAsDataURL(file)
     }
-    reader.readAsDataURL(file)
   }
 
   const validate = () => {
