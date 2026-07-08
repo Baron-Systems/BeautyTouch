@@ -225,18 +225,6 @@ export default function Navbar() {
       {menuOpen && (
         <div className="lg:hidden bg-white border-t border-gray-100 shadow-lg" style={{ animation: 'slideDown 0.2s ease-out' }}>
           <nav className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
-            {/* Mobile Search */}
-            <div className="relative mb-4">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black-light" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleSearch}
-                placeholder="بحث عن منتج..."
-                className="w-full pr-9 pl-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold transition-colors"
-                dir="rtl"
-              />
-            </div>
             {navLinks.map((link) => (
               <Link
                 key={link.to}

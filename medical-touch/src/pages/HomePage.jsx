@@ -111,6 +111,35 @@ export default function HomePage() {
 
   return (
     <div className="space-y-16">
+      {/* Search Input - Mobile Only */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-4 md:hidden">
+        <div className="relative">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black-light" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              const query = e.target.value
+              const hash = window.location.hash
+              const [path, queryString] = hash.split('?')
+              const params = new URLSearchParams(queryString || '')
+              
+              if (query) {
+                params.set('search', query)
+              } else {
+                params.delete('search')
+              }
+              
+              const newHash = params.toString() ? `${path}?${params.toString()}` : path
+              window.history.replaceState({}, '', `#${newHash}`)
+            }}
+            placeholder="بحث عن منتج..."
+            className="w-full pr-9 pl-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold transition-colors"
+            dir="rtl"
+          />
+        </div>
+      </section>
+
       {/* Search Results Header */}
       {searchQuery && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
