@@ -21,6 +21,7 @@ function mapProduct(p) {
     category: p.category,
     subcategory: p.subcategory,
     price: p.price,
+    discountedPrice: p.discountedPrice,
     image: p.image,
     description: p.description,
     isBestSeller: !!p.isBestSeller,
@@ -57,25 +58,25 @@ app.get('/api/products/:id', (req, res) => {
 })
 
 app.post('/api/products', (req, res) => {
-  const { name, category, subcategory, price, image, description, isBestSeller, isNew, isActive } = req.body
+  const { name, category, subcategory, price, discountedPrice, image, description, isBestSeller, isNew, isActive } = req.body
   const stmt = db.prepare(`
-    INSERT INTO products (name, category, subcategory, price, image, description, isBestSeller, isNew, isActive)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO products (name, category, subcategory, price, discountedPrice, image, description, isBestSeller, isNew, isActive)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
   const result = stmt.run(
-    name, category, subcategory || null, price, image || '', description || '',
+    name, category, subcategory || null, price, discountedPrice || null, image || '', description || '',
     isBestSeller ? 1 : 0, isNew ? 1 : 0, isActive !== false ? 1 : 0
   )
   res.status(201).json({ id: result.lastInsertRowid })
 })
 
 app.put('/api/products/:id', (req, res) => {
-  const { name, category, subcategory, price, image, description, isBestSeller, isNew, isActive } = req.body
+  const { name, category, subcategory, price, discountedPrice, image, description, isBestSeller, isNew, isActive } = req.body
   db.prepare(`
-    UPDATE products SET name = ?, category = ?, subcategory = ?, price = ?, image = ?, description = ?, isBestSeller = ?, isNew = ?, isActive = ?
+    UPDATE products SET name = ?, category = ?, subcategory = ?, price = ?, discountedPrice = ?, image = ?, description = ?, isBestSeller = ?, isNew = ?, isActive = ?
     WHERE id = ?
   `).run(
-    name, category, subcategory || null, price, image || '', description || '',
+    name, category, subcategory || null, price, discountedPrice || null, image || '', description || '',
     isBestSeller ? 1 : 0, isNew ? 1 : 0, isActive !== false ? 1 : 0, req.params.id
   )
   res.json({ success: true })

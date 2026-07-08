@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useSearchParams } from 'react-router-dom'
 import { ChevronRight, SlidersHorizontal } from 'lucide-react'
 import ProductCard from '../components/ProductCard.jsx'
 import { getCategoryBySlug, getSubcategoryBySlug } from '../data/categories.js'
@@ -7,6 +7,8 @@ import { storage } from '../services/storage.js'
 
 export default function CategoryPage() {
   const { categorySlug, subcategorySlug } = useParams()
+  const [searchParams] = useSearchParams()
+  const searchQuery = searchParams.get('search') || ''
   const category = getCategoryBySlug(categorySlug)
   const [products, setProducts] = useState([])
 
@@ -17,22 +19,33 @@ export default function CategoryPage() {
   const filteredProducts = useMemo(() => {
     if (!category) return []
 
+    let result = []
+
     if (categorySlug === 'bestsellers') {
-      return products.filter((p) => p.isBestSeller)
-    }
-    if (categorySlug === 'new') {
-      return products.filter((p) => p.isNew)
-    }
-    if (categorySlug === 'offers') {
-      return products.filter((p) => p.price < 500)
-    }
-    if (subcategorySlug) {
-      return products.filter(
+      result = products.filter((p) => p.isBestSeller)
+    } else if (categorySlug === 'new') {
+      result = products.filter((p) => p.isNew)
+    } else if (categorySlug === 'offers') {
+      result = products.filter((p) => p.price < 500)
+    } else if (subcategorySlug) {
+      result = products.filter(
         (p) => p.category === categorySlug && p.subcategory === subcategorySlug
       )
+    } else {
+      result = products.filter((p) => p.category === categorySlug)
     }
-    return products.filter((p) => p.category === categorySlug)
-  }, [categorySlug, subcategorySlug, products])
+
+    // Apply search filter if query exists
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      result = result.filter((p) =>
+        p.name.toLowerCase().includes(query) ||
+        p.description?.toLowerCase().includes(query)
+      )
+    }
+
+    return result
+  }, [categorySlug, subcategorySlug, products, searchQuery])
 
   const subcategory = subcategorySlug
     ? getSubcategoryBySlug(categorySlug, subcategorySlug)
@@ -66,7 +79,7 @@ export default function CategoryPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-black mb-2">{pageTitle}</h1>
         <p className="text-sm text-black-light">
-          {filteredProducts.length} منتج
+          {searchQuery ? `نتائج البحث: ${filteredProducts.length} منتج` : `${filteredProducts.length} منتج`}
         </p>
       </div>
 

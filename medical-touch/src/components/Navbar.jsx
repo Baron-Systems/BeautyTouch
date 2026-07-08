@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ShoppingBag, Heart, Menu, X, ClipboardList, Download, MoreVertical, ArrowLeft, Sun, Moon } from 'lucide-react'
+import { ShoppingBag, Heart, Menu, X, ClipboardList, Download, MoreVertical, ArrowLeft, Sun, Moon, Search } from 'lucide-react'
 import Logo from './Logo.jsx'
 import { useCart } from '../context/CartContext.jsx'
 import { useTheme } from '../context/ThemeContext.jsx'
@@ -10,10 +10,35 @@ export default function Navbar() {
   const [showManual, setShowManual] = useState(false)
   const [installPrompt, setInstallPrompt] = useState(null)
   const [isInstalled, setIsInstalled] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const { cartCount, wishlist } = useCart()
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
   const navigate = useNavigate()
+
+  // Sync search query with URL params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.split('?')[1])
+    const search = params.get('search')
+    if (search) {
+      setSearchQuery(search)
+    } else {
+      setSearchQuery('')
+    }
+  }, [location])
+
+  const handleSearch = (e) => {
+    const query = e.target.value
+    setSearchQuery(query)
+    // Update URL with search param
+    const url = new URL(window.location.href)
+    if (query) {
+      url.searchParams.set('search', query)
+    } else {
+      url.searchParams.delete('search')
+    }
+    window.history.replaceState({}, '', url)
+  }
 
   useEffect(() => {
     const isStandalone =
@@ -117,6 +142,23 @@ export default function Navbar() {
             </nav>
           )}
 
+          {/* Search */}
+          {!isAdmin && (
+            <div className="hidden md:flex items-center">
+              <div className="relative">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black-light" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  placeholder="بحث عن منتج..."
+                  className="w-48 lg:w-64 pr-9 pl-3 py-2 text-sm border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold transition-colors"
+                  dir="rtl"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex items-center gap-2">
             {!isAdmin && (
@@ -176,6 +218,18 @@ export default function Navbar() {
       {menuOpen && (
         <div className="lg:hidden bg-white border-t border-gray-100 shadow-lg" style={{ animation: 'slideDown 0.2s ease-out' }}>
           <nav className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
+            {/* Mobile Search */}
+            <div className="relative mb-4">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black-light" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearch}
+                placeholder="بحث عن منتج..."
+                className="w-full pr-9 pl-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold transition-colors"
+                dir="rtl"
+              />
+            </div>
             {navLinks.map((link) => (
               <Link
                 key={link.to}
