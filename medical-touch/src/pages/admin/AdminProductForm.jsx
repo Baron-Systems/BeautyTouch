@@ -15,6 +15,7 @@ export default function AdminProductForm() {
     category: '',
     subcategory: '',
     price: '',
+    discountedPrice: '',
     image: '',
     description: '',
     isBestSeller: false,
@@ -33,6 +34,7 @@ export default function AdminProductForm() {
             category: product.category || '',
             subcategory: product.subcategory || '',
             price: String(product.price) || '',
+            discountedPrice: product.discountedPrice ? String(product.discountedPrice) : '',
             image: product.image || '',
             description: product.description || '',
             isBestSeller: product.isBestSeller || false,
@@ -76,6 +78,7 @@ export default function AdminProductForm() {
     const productData = {
       ...form,
       price: Number(form.price),
+      discountedPrice: form.discountedPrice ? Number(form.discountedPrice) : null,
       subcategory: form.subcategory || null,
     }
 
@@ -198,6 +201,20 @@ export default function AdminProductForm() {
               min="0"
             />
             {errors.price && <p className="text-xs text-red-500 mt-1">{errors.price}</p>}
+          </div>
+
+          {/* Discounted Price */}
+          <div>
+            <label className="block text-sm font-medium text-black mb-2">السعر بعد الخصم (₪)</label>
+            <input
+              type="number"
+              value={form.discountedPrice}
+              onChange={(e) => handleChange('discountedPrice', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold transition-colors text-sm"
+              placeholder="مثال: 300"
+              min="0"
+            />
+            <p className="text-xs text-black-light mt-1">اتركه فارغاً إذا لم يكن هناك خصم</p>
           </div>
 
           {/* Image */}

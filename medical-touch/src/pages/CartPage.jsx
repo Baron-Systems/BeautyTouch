@@ -33,7 +33,7 @@ function generateWhatsAppMessage(cartItems, total, products, customer) {
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, clearCart } = useCart()
   const [products, setProducts] = useState([])
-  const [customer, setCustomer] = useState({ name: '', phone: '', address: '' })
+  const [customer, setCustomer] = useState({ name: '', phone: '', address: '', notes: '' })
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [orderSent, setOrderSent] = useState(false)
@@ -52,7 +52,7 @@ export default function CartPage() {
     if (saved) {
       try {
         const data = JSON.parse(saved)
-        setCustomer({ name: data.name || '', phone: data.phone || '', address: data.address || '' })
+        setCustomer({ name: data.name || '', phone: data.phone || '', address: data.address || '', notes: data.notes || '' })
       } catch { /* ignore */ }
     }
   }, [])
@@ -67,7 +67,10 @@ export default function CartPage() {
       .filter(Boolean)
   }, [cartItems, products])
 
-  const total = cartProducts.reduce((sum, p) => sum + p.price * p.quantity, 0)
+  const total = cartProducts.reduce((sum, p) => {
+    const priceToUse = p.discountedPrice || p.price
+    return sum + priceToUse * p.quantity
+  }, 0)
 
   const validate = () => {
     const errs = {}
@@ -96,6 +99,7 @@ export default function CartPage() {
         address: customer.address,
         items,
         total,
+        notes: customer.notes || null,
       })
       localStorage.setItem('beauty_touch_customer', JSON.stringify(customer))
       clearCart()
@@ -162,9 +166,22 @@ export default function CartPage() {
                     {product.name}
                   </h3>
                 </Link>
-                <p className="text-gold font-bold text-sm md:text-base mb-2">
-                  {product.price} ₪
-                </p>
+                <div className="mb-2">
+                  {product.discountedPrice ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-gold font-bold text-sm md:text-base">
+                        {product.discountedPrice} ₪
+                      </span>
+                      <span className="text-xs text-black-light line-through">
+                        {product.price} ₪
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-gold font-bold text-sm md:text-base">
+                      {product.price} ₪
+                    </p>
+                  )}
+                </div>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
                     <button
@@ -192,7 +209,7 @@ export default function CartPage() {
               </div>
               <div className="hidden sm:block text-right">
                 <p className="font-bold text-black">
-                  {product.price * product.quantity} ₪
+                  {(product.discountedPrice || product.price) * product.quantity} ₪
                 </p>
               </div>
             </div>
@@ -271,6 +288,18 @@ export default function CartPage() {
                   />
                 </div>
                 {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-1">ملاحظات إضافية</label>
+                <textarea
+                  value={customer.notes}
+                  onChange={(e) => handleCustomerChange('notes', e.target.value)}
+                  placeholder="أي ملاحظات إضافية حول الطلب..."
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold resize-none"
+                  rows="3"
+                  dir="rtl"
+                />
               </div>
             </div>
 

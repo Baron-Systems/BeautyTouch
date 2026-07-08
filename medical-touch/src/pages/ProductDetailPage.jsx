@@ -94,8 +94,21 @@ export default function ProductDetailPage() {
             {product.name}
           </h1>
 
-          <div className="text-3xl font-bold text-gold mb-6">
-            {product.price} <span className="text-base font-normal text-black-light">₪</span>
+          <div className="mb-6">
+            {product.discountedPrice ? (
+              <div className="flex items-center gap-3">
+                <span className="text-3xl font-bold text-gold">
+                  {product.discountedPrice} <span className="text-base font-normal text-black-light">₪</span>
+                </span>
+                <span className="text-xl text-black-light line-through">
+                  {product.price} ₪
+                </span>
+              </div>
+            ) : (
+              <div className="text-3xl font-bold text-gold">
+                {product.price} <span className="text-base font-normal text-black-light">₪</span>
+              </div>
+            )}
           </div>
 
           <p className="text-black-light leading-relaxed mb-8 text-base">

@@ -43,6 +43,7 @@ db.exec(`
     category TEXT NOT NULL,
     subcategory TEXT,
     price INTEGER NOT NULL,
+    discountedPrice INTEGER,
     image TEXT NOT NULL,
     description TEXT,
     isBestSeller INTEGER DEFAULT 0,
@@ -75,6 +76,14 @@ try {
   console.log('Migrated: added isActive to products')
 }
 
+// Migrate: add discountedPrice if missing
+try {
+  db.prepare('SELECT discountedPrice FROM products LIMIT 1').get()
+} catch {
+  db.exec('ALTER TABLE products ADD COLUMN discountedPrice INTEGER')
+  console.log('Migrated: added discountedPrice to products')
+}
+
 // Admin table
 db.exec(`
   CREATE TABLE IF NOT EXISTS admin (
@@ -87,8 +96,8 @@ function seedIfEmpty() {
   const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get()
   if (productCount.count === 0) {
     const insertProduct = db.prepare(`
-      INSERT INTO products (name, category, subcategory, price, image, description, isBestSeller, isNew, isActive)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO products (name, category, subcategory, price, discountedPrice, image, description, isBestSeller, isNew, isActive)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
     seedProducts.forEach((p) => {
       insertProduct.run(
@@ -96,6 +105,7 @@ function seedIfEmpty() {
         p.category,
         p.subcategory || null,
         p.price,
+        p.discountedPrice || null,
         p.image,
         p.description,
         p.isBestSeller ? 1 : 0,

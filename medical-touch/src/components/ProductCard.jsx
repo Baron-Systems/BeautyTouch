@@ -66,9 +66,22 @@ export default function ProductCard({ product }) {
             {product.name}
           </h3>
           <div className="flex items-center justify-between gap-2">
-            <span className="text-lg font-bold text-gold">
-              {product.price} <span className="text-xs font-normal text-black-light">₪</span>
-            </span>
+            <div className="flex flex-col">
+              {product.discountedPrice ? (
+                <>
+                  <span className="text-lg font-bold text-gold">
+                    {product.discountedPrice} <span className="text-xs font-normal text-black-light">₪</span>
+                  </span>
+                  <span className="text-xs text-black-light line-through">
+                    {product.price} ₪
+                  </span>
+                </>
+              ) : (
+                <span className="text-lg font-bold text-gold">
+                  {product.price} <span className="text-xs font-normal text-black-light">₪</span>
+                </span>
+              )}
+            </div>
             <button
               onClick={handleAddToCart}
               className="w-9 h-9 rounded-full bg-gold text-white flex items-center justify-center hover:shadow-gold transition-all duration-200 hover:scale-105"
