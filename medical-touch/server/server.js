@@ -60,6 +60,7 @@ app.get('/api/products/:id', (req, res) => {
 
 app.post('/api/products', (req, res) => {
   const { name, category, subcategory, price, discountedPrice, image, description, isBestSeller, isNew, isActive } = req.body
+  console.log('POST /api/products - discountedPrice:', discountedPrice)
   const stmt = db.prepare(`
     INSERT INTO products (name, category, subcategory, price, discountedPrice, image, description, isBestSeller, isNew, isActive)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
