@@ -100,7 +100,7 @@ export default function ProductDetailPage() {
                 <span className="text-3xl font-bold text-gold">
                   {product.discountedPrice} <span className="text-base font-normal text-black-light">₪</span>
                 </span>
-                <span className="text-xl text-black-light line-through">
+                <span className="text-2xl font-medium text-red-500 line-through">
                   {product.price} ₪
                 </span>
               </div>

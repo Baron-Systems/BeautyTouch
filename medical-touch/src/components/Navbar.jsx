@@ -18,7 +18,9 @@ export default function Navbar() {
 
   // Sync search query with URL params
   useEffect(() => {
-    const params = new URLSearchParams(window.location.hash.split('?')[1])
+    const hash = window.location.hash
+    const [path, queryString] = hash.split('?')
+    const params = new URLSearchParams(queryString || '')
     const search = params.get('search')
     if (search) {
       setSearchQuery(search)
@@ -30,14 +32,19 @@ export default function Navbar() {
   const handleSearch = (e) => {
     const query = e.target.value
     setSearchQuery(query)
-    // Update URL with search param
-    const url = new URL(window.location.href)
+    // Update URL with search param for HashRouter
+    const hash = window.location.hash
+    const [path, queryString] = hash.split('?')
+    const params = new URLSearchParams(queryString || '')
+    
     if (query) {
-      url.searchParams.set('search', query)
+      params.set('search', query)
     } else {
-      url.searchParams.delete('search')
+      params.delete('search')
     }
-    window.history.replaceState({}, '', url)
+    
+    const newHash = params.toString() ? `${path}?${params.toString()}` : path
+    window.history.replaceState({}, '', `#${newHash}`)
   }
 
   useEffect(() => {

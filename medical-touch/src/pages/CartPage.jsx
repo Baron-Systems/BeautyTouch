@@ -172,7 +172,7 @@ export default function CartPage() {
                       <span className="text-gold font-bold text-sm md:text-base">
                         {product.discountedPrice} ₪
                       </span>
-                      <span className="text-xs text-black-light line-through">
+                      <span className="text-sm font-medium text-red-500 line-through">
                         {product.price} ₪
                       </span>
                     </div>

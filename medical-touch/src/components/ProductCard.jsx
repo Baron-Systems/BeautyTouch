@@ -72,7 +72,7 @@ export default function ProductCard({ product }) {
                   <span className="text-lg font-bold text-gold">
                     {product.discountedPrice} <span className="text-xs font-normal text-black-light">₪</span>
                   </span>
-                  <span className="text-xs text-black-light line-through">
+                  <span className="text-sm font-medium text-red-500 line-through">
                     {product.price} ₪
                   </span>
                 </>

@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState } from 'react'
-import { useParams, Link, useSearchParams } from 'react-router-dom'
+import { useParams, Link, useLocation } from 'react-router-dom'
 import { ChevronRight, SlidersHorizontal } from 'lucide-react'
 import ProductCard from '../components/ProductCard.jsx'
 import { getCategoryBySlug, getSubcategoryBySlug } from '../data/categories.js'
@@ -7,10 +7,17 @@ import { storage } from '../services/storage.js'
 
 export default function CategoryPage() {
   const { categorySlug, subcategorySlug } = useParams()
-  const [searchParams] = useSearchParams()
-  const searchQuery = searchParams.get('search') || ''
+  const location = useLocation()
   const category = getCategoryBySlug(categorySlug)
   const [products, setProducts] = useState([])
+  
+  // Parse search query from hash URL
+  const searchQuery = useMemo(() => {
+    const hash = location.hash
+    const [path, queryString] = hash.split('?')
+    const params = new URLSearchParams(queryString || '')
+    return params.get('search') || ''
+  }, [location.hash])
 
   useEffect(() => {
     storage.getProducts().then((data) => setProducts(data.filter((p) => p.isActive !== false))).catch(() => setProducts([]))

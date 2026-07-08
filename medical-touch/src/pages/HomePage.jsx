@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { ChevronLeft, Sparkles, ShoppingBag, MessageCircle, TrendingUp, Star, Zap, Download, X } from 'lucide-react'
 import ProductCard from '../components/ProductCard.jsx'
 import { categories } from '../data/categories.js'
@@ -25,8 +25,15 @@ export default function HomePage() {
   const [showManual, setShowManual] = useState(false)
   const [installPrompt, setInstallPrompt] = useState(null)
   const [isInstalled, setIsInstalled] = useState(false)
-  const [searchParams] = useSearchParams()
-  const searchQuery = searchParams.get('search') || ''
+  const location = useLocation()
+  
+  // Parse search query from hash URL
+  const searchQuery = useMemo(() => {
+    const hash = location.hash
+    const [path, queryString] = hash.split('?')
+    const params = new URLSearchParams(queryString || '')
+    return params.get('search') || ''
+  }, [location.hash])
 
   useEffect(() => {
     storage.getProducts().then((data) => setProducts(data.filter((p) => p.isActive !== false))).catch(() => setProducts([]))
