@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ClipboardList, Package, CheckCircle, Truck, XCircle, Clock, ArrowLeft, Power, Eye, X, MapPin, Phone, User, Calendar, Download, LogOut, Lock, FileText, Save } from 'lucide-react'
+import { ClipboardList, Package, CheckCircle, Truck, XCircle, Clock, ArrowLeft, Power, Eye, X, MapPin, Phone, User, Calendar, Download, LogOut, Lock, FileText, Save, Pencil, CheckCircle2, AlertCircle } from 'lucide-react'
 import { storage } from '../../services/storage.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import Logo from '../../components/Logo.jsx'
@@ -33,7 +33,9 @@ export default function AdminOrdersPage() {
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
   const [orderNote, setOrderNote] = useState('')
+  const [editingNote, setEditingNote] = useState(true)
   const [savingNote, setSavingNote] = useState(false)
+  const [noteMessage, setNoteMessage] = useState({ type: '', text: '' })
 
   useEffect(() => {
     loadData()
@@ -70,8 +72,20 @@ export default function AdminOrdersPage() {
 
   const handleSaveOrderNote = async () => {
     setSavingNote(true)
-    await storage.updateSetting('order_note', orderNote)
+    setNoteMessage({ type: '', text: '' })
+    const res = await storage.updateSetting('order_note', orderNote)
     setSavingNote(false)
+    if (res.success) {
+      setEditingNote(false)
+      setNoteMessage({ type: 'success', text: 'تم حفظ الملاحظة بنجاح' })
+    } else {
+      setNoteMessage({ type: 'error', text: res.error || 'فشل حفظ الملاحظة' })
+    }
+  }
+
+  const handleEditOrderNote = () => {
+    setEditingNote(true)
+    setNoteMessage({ type: '', text: '' })
   }
 
   const handleChangePassword = async () => {
@@ -181,18 +195,35 @@ export default function AdminOrdersPage() {
               value={orderNote}
               onChange={(e) => setOrderNote(e.target.value)}
               placeholder="مثال: سعر التوصيل 20 ₪"
-              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold text-sm"
+              disabled={!editingNote}
+              className={`flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold text-sm ${!editingNote ? 'bg-gray-50 text-gray-600' : ''}`}
               dir="rtl"
             />
-            <button
-              onClick={handleSaveOrderNote}
-              disabled={savingNote}
-              className="btn-gold px-5 py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <Save className="w-4 h-4" />
-              {savingNote ? 'جاري الحفظ...' : 'حفظ الملاحظة'}
-            </button>
+            {editingNote ? (
+              <button
+                onClick={handleSaveOrderNote}
+                disabled={savingNote}
+                className="btn-gold px-5 py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                {savingNote ? 'جاري الحفظ...' : 'حفظ الملاحظة'}
+              </button>
+            ) : (
+              <button
+                onClick={handleEditOrderNote}
+                className="px-5 py-2.5 text-sm flex items-center justify-center gap-2 border border-gray-200 rounded-lg text-black hover:bg-gray-50 transition-colors"
+              >
+                <Pencil className="w-4 h-4" />
+                تعديل
+              </button>
+            )}
           </div>
+          {noteMessage.text && (
+            <div className={`mt-3 flex items-center gap-2 text-sm ${noteMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+              {noteMessage.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+              <span>{noteMessage.text}</span>
+            </div>
+          )}
         </div>
 
         {/* Filters */}
