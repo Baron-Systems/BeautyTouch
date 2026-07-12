@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ClipboardList, Package, CheckCircle, Truck, XCircle, Clock, ArrowLeft, Power, Eye, X, MapPin, Phone, User, Calendar, Download, LogOut, Lock } from 'lucide-react'
+import { ClipboardList, Package, CheckCircle, Truck, XCircle, Clock, ArrowLeft, Power, Eye, X, MapPin, Phone, User, Calendar, Download, LogOut, Lock, FileText, Save } from 'lucide-react'
 import { storage } from '../../services/storage.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import Logo from '../../components/Logo.jsx'
@@ -32,9 +32,12 @@ export default function AdminOrdersPage() {
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
+  const [orderNote, setOrderNote] = useState('')
+  const [savingNote, setSavingNote] = useState(false)
 
   useEffect(() => {
     loadData()
+    storage.getSetting('order_note').then((res) => setOrderNote(res.value || ''))
   }, [])
 
   const loadData = async () => {
@@ -63,6 +66,12 @@ export default function AdminOrdersPage() {
   const handleLogout = () => {
     logout()
     navigate('/admin/login')
+  }
+
+  const handleSaveOrderNote = async () => {
+    setSavingNote(true)
+    await storage.updateSetting('order_note', orderNote)
+    setSavingNote(false)
   }
 
   const handleChangePassword = async () => {
@@ -155,6 +164,35 @@ export default function AdminOrdersPage() {
               <p className="text-xs opacity-80 mt-1">{s.revenue} ₪</p>
             </div>
           ))}
+        </div>
+
+        {/* Order Note Setting */}
+        <div className="bg-white rounded-card shadow-card p-5 mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <FileText className="w-5 h-5 text-gold" />
+            <h2 className="font-bold text-black">ملاحظة الطلب الافتراضية</h2>
+          </div>
+          <p className="text-sm text-black-light mb-3">
+            هذا النص سيظهر للعملاء كملاحظة في صفحة السلة قبل إرسال الطلب.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              value={orderNote}
+              onChange={(e) => setOrderNote(e.target.value)}
+              placeholder="مثال: سعر التوصيل 20 ₪"
+              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold text-sm"
+              dir="rtl"
+            />
+            <button
+              onClick={handleSaveOrderNote}
+              disabled={savingNote}
+              className="btn-gold px-5 py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <Save className="w-4 h-4" />
+              {savingNote ? 'جاري الحفظ...' : 'حفظ الملاحظة'}
+            </button>
+          </div>
         </div>
 
         {/* Filters */}

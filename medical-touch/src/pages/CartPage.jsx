@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, MessageCircle, Send, User, MapPin, Phone } from 'lucide-react'
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, MessageCircle, Send, User, MapPin, Phone, FileText } from 'lucide-react'
 import { useCart } from '../context/CartContext.jsx'
 import { storage } from '../services/storage.js'
 
@@ -37,9 +37,11 @@ export default function CartPage() {
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [orderSent, setOrderSent] = useState(false)
+  const [orderNote, setOrderNote] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
+    storage.getSetting('order_note').then((res) => setOrderNote(res.value || ''))
     storage.getProducts().then((data) => {
       const activeProducts = data.filter((p) => p.isActive !== false)
       setProducts(activeProducts)
@@ -93,13 +95,14 @@ export default function CartPage() {
     setSubmitting(true)
     try {
       const items = cartProducts.map((p) => ({ name: p.name, price: p.price, quantity: p.quantity }))
+      const combinedNotes = [orderNote, customer.notes].filter(Boolean).join('\n') || null
       await storage.createOrder({
         customer_name: customer.name,
         phone: customer.phone,
         address: customer.address,
         items,
         total,
-        notes: customer.notes || null,
+        notes: combinedNotes,
       })
       localStorage.setItem('beauty_touch_customer', JSON.stringify(customer))
       clearCart()
@@ -302,6 +305,13 @@ export default function CartPage() {
                 />
               </div>
             </div>
+
+            {orderNote && (
+              <div className="bg-amber-50 rounded-lg p-3 flex items-start gap-2 text-sm text-amber-800">
+                <FileText className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{orderNote}</span>
+              </div>
+            )}
 
             <button
               onClick={handleSubmitOrder}

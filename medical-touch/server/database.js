@@ -92,6 +92,14 @@ db.exec(`
   )
 `)
 
+// Settings table
+db.exec(`
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  )
+`)
+
 function seedIfEmpty() {
   const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get()
   if (productCount.count === 0) {
@@ -130,6 +138,12 @@ function seedIfEmpty() {
   if (adminRow.count === 0) {
     db.prepare("INSERT INTO admin (id, password) VALUES (1, 'medical2025')").run()
     console.log('Seeded admin password')
+  }
+
+  const orderNote = db.prepare("SELECT value FROM settings WHERE key = 'order_note'").get()
+  if (!orderNote) {
+    db.prepare("INSERT INTO settings (key, value) VALUES ('order_note', '')").run()
+    console.log('Seeded order_note setting')
   }
 }
 

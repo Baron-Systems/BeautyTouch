@@ -183,4 +183,20 @@ export const storage = {
   logoutAdmin: () => {
     localStorage.removeItem(AUTH_TOKEN_KEY)
   },
+
+  // Settings (API)
+  getSetting: async (key) => {
+    try {
+      return await api.getSetting(key)
+    } catch {
+      return { value: '' }
+    }
+  },
+  updateSetting: async (key, value) => {
+    try {
+      return await api.updateSetting(key, value)
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  },
 }

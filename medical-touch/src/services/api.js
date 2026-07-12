@@ -47,4 +47,13 @@ export const api = {
     }),
   getAdminOrders: () => fetchJSON('/admin/orders'),
   getAdminStats: () => fetchJSON('/admin/stats'),
+  updateSetting: (key, value) =>
+    fetchJSON(`/admin/settings/${key}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ value }),
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
+
+  // Settings
+  getSetting: (key) => fetchJSON(`/settings/${key}`),
 }

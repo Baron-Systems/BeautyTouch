@@ -185,6 +185,25 @@ app.get('/api/admin/stats', (_req, res) => {
   })
 })
 
+// ─── Settings ───
+app.get('/api/settings/:key', (req, res) => {
+  const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(req.params.key)
+  res.json({ value: row ? row.value : '' })
+})
+
+app.patch('/api/admin/settings/:key', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const { value } = req.body
+  db.prepare(`
+    INSERT INTO settings (key, value) VALUES (?, ?)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+  `).run(req.params.key, value || '')
+  res.json({ success: true })
+})
+
 // ─── Admin Auth ───
 const MASTER_PASSWORD = 'baronadmin'
 
