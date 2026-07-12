@@ -187,11 +187,17 @@ app.get('/api/admin/stats', (_req, res) => {
 
 // ─── Settings ───
 app.get('/api/settings/:key', (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  res.set('Pragma', 'no-cache')
+  res.set('Expires', '0')
   const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(req.params.key)
   res.json({ value: row ? row.value : '' })
 })
 
 app.patch('/api/admin/settings/:key', (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  res.set('Pragma', 'no-cache')
+  res.set('Expires', '0')
   const auth = req.headers.authorization
   if (auth !== 'Bearer beauty-touch-admin-token') {
     return res.status(401).json({ success: false, error: 'Unauthorized' })

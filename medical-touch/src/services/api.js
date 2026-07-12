@@ -55,5 +55,5 @@ export const api = {
     }),
 
   // Settings
-  getSetting: (key) => fetchJSON(`/settings/${key}`),
+  getSetting: (key) => fetchJSON(`/settings/${key}?_t=${Date.now()}`),
 }
