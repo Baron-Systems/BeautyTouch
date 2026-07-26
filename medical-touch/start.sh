@@ -37,8 +37,20 @@ else
 fi
 cd ..
 
-# Step 4: Start server
-echo "[4/4] Starting server..."
+# Step 4: Stop any existing server on port 3001
+echo "[4/4] Stopping any existing server..."
+pkill -f "server/server.js" 2>/dev/null || true
+pkill -f "node server.js" 2>/dev/null || true
+for i in {1..5}; do
+  if ! ss -tuln 2>/dev/null | grep -q ":3001 "; then
+    break
+  fi
+  echo "  -> waiting for port 3001 to be released..."
+  sleep 1
+done
+
+# Step 5: Start server
+echo "[5/5] Starting server..."
 echo ""
 echo "========================================"
 echo "  App ready at: http://localhost:3001"
