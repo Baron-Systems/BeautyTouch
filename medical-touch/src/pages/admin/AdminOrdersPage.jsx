@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ClipboardList, Package, CheckCircle, Truck, XCircle, Clock, ArrowLeft, Power, Eye, X, MapPin, Phone, User, Calendar, Download, LogOut, Lock, FileText, Save, Pencil, CheckCircle2, AlertCircle } from 'lucide-react'
+import { ClipboardList, Package, CheckCircle, Truck, XCircle, Clock, ArrowLeft, Power, Eye, X, MapPin, Phone, User, Calendar, Download, LogOut, Lock, FileText, Save, Pencil, CheckCircle2, AlertCircle, Search } from 'lucide-react'
 import { storage } from '../../services/storage.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import Logo from '../../components/Logo.jsx'
@@ -129,8 +129,16 @@ export default function AdminOrdersPage() {
               <Logo size="small" />
             </Link>
             <div className="flex items-center gap-3">
-              <Link to="/admin/products" className="text-sm text-gold hover:underline">
-                المنتجات
+              <Link to="/admin/products" className="flex items-center gap-2 text-sm px-4 py-2 bg-white border border-gray-200 rounded-button hover:border-gold hover:text-gold transition-colors">
+                <Package className="w-4 h-4" />
+                <span>المنتجات</span>
+              </Link>
+              <Link
+                to="/admin/delivery"
+                className="flex items-center gap-2 text-sm px-4 py-2 bg-white border border-gray-200 rounded-button hover:border-gold hover:text-gold transition-colors"
+              >
+                <Truck className="w-4 h-4" />
+                <span>التوصيل</span>
               </Link>
               <a
                 href="/api/admin/export"
@@ -482,9 +490,17 @@ export default function AdminOrdersPage() {
                 </div>
 
                 {/* Total */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                  <span className="font-bold text-black">الإجمالي</span>
-                  <span className="text-xl font-bold text-gold">{selectedOrder.total} ₪</span>
+                <div className="space-y-2 pt-3 border-t border-gray-100">
+                  {selectedOrder.delivery_area && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-black-light">التوصيل ({selectedOrder.delivery_area})</span>
+                      <span className="font-medium">{selectedOrder.delivery_price || 0} ₪</span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-black">الإجمالي</span>
+                    <span className="text-xl font-bold text-gold">{selectedOrder.total} ₪</span>
+                  </div>
                 </div>
 
                 {/* Notes */}

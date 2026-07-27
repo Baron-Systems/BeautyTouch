@@ -199,4 +199,34 @@ export const storage = {
       return { success: false, error: err.message }
     }
   },
+
+  // Delivery Areas (API)
+  getDeliveryAreas: async () => {
+    try {
+      return await api.getDeliveryAreas()
+    } catch {
+      return []
+    }
+  },
+  createDeliveryArea: async (area) => {
+    try {
+      return await api.createDeliveryArea(area)
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  },
+  updateDeliveryArea: async (id, area) => {
+    try {
+      return await api.updateDeliveryArea(id, area)
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  },
+  deleteDeliveryArea: async (id) => {
+    try {
+      return await api.deleteDeliveryArea(id)
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  },
 }

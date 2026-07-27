@@ -56,4 +56,24 @@ export const api = {
 
   // Settings
   getSetting: (key) => fetchJSON(`/settings/${key}?_t=${Date.now()}`),
+
+  // Delivery Areas
+  getDeliveryAreas: () => fetchJSON('/delivery-areas'),
+  createDeliveryArea: (area) =>
+    fetchJSON('/admin/delivery-areas', {
+      method: 'POST',
+      body: JSON.stringify(area),
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
+  updateDeliveryArea: (id, area) =>
+    fetchJSON(`/admin/delivery-areas/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(area),
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
+  deleteDeliveryArea: (id) =>
+    fetchJSON(`/admin/delivery-areas/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
 }

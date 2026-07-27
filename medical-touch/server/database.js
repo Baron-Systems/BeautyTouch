@@ -20,6 +20,9 @@ const categories = [
   { id: 'cat-skincare', slug: 'skincare', name: 'العناية بالبشرة', hasSubcategories: false, subcategories: null },
   { id: 'cat-creams', slug: 'creams', name: 'الكريمات والسيرومات', hasSubcategories: false, subcategories: null },
   { id: 'cat-devices', slug: 'devices', name: 'أجهزة التجميل', hasSubcategories: false, subcategories: null },
+  { id: 'cat-face-masks', slug: 'face-masks', name: 'ماسكات الوجه', hasSubcategories: false, subcategories: null },
+  { id: 'cat-eye-care', slug: 'eye-care', name: 'العناية بمحيط العين', hasSubcategories: false, subcategories: null },
+  { id: 'cat-face-wash', slug: 'face-wash', name: 'غسولات الوجه', hasSubcategories: false, subcategories: null },
 ]
 
 const db = new Database('./db.sqlite')
@@ -100,6 +103,31 @@ db.exec(`
   )
 `)
 
+// Delivery areas table
+db.exec(`
+  CREATE TABLE IF NOT EXISTS delivery_areas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    price INTEGER NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
+// Migrate: add delivery_area and delivery_price to orders if missing
+try {
+  db.prepare('SELECT delivery_area FROM orders LIMIT 1').get()
+} catch {
+  db.exec('ALTER TABLE orders ADD COLUMN delivery_area TEXT')
+  console.log('Migrated: added delivery_area to orders')
+}
+
+try {
+  db.prepare('SELECT delivery_price FROM orders LIMIT 1').get()
+} catch {
+  db.exec('ALTER TABLE orders ADD COLUMN delivery_price INTEGER DEFAULT 0')
+  console.log('Migrated: added delivery_price to orders')
+}
+
 function seedIfEmpty() {
   const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get()
   if (productCount.count === 0) {
@@ -145,6 +173,13 @@ function seedIfEmpty() {
     db.prepare("INSERT INTO settings (key, value) VALUES ('order_note', '')").run()
     console.log('Seeded order_note setting')
   }
+
+  // Seed new categories if missing
+  const insertCat = db.prepare('INSERT OR IGNORE INTO categories (slug, name, subcategories) VALUES (?, ?, ?)')
+  categories.forEach((c) => {
+    const subs = c.subcategories ? JSON.stringify(c.subcategories.map(s => ({ id: s.id, name: s.name, slug: s.slug }))) : null
+    insertCat.run(c.slug, c.name, subs)
+  })
 }
 
 seedIfEmpty()

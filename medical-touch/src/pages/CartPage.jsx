@@ -1,10 +1,10 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, MessageCircle, Send, User, MapPin, Phone, FileText } from 'lucide-react'
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Send, User, MapPin, Phone, FileText, Truck } from 'lucide-react'
 import { useCart } from '../context/CartContext.jsx'
 import { storage } from '../services/storage.js'
 
-function generateWhatsAppMessage(cartItems, total, products, customer) {
+function generateWhatsAppMessage(cartItems, subtotal, deliveryPrice, total, products, customer, deliveryArea) {
   const lines = cartItems.map((item) => {
     const product = products.find((p) => String(p.id) === String(item.productId))
     if (!product) return ''
@@ -18,14 +18,17 @@ function generateWhatsAppMessage(cartItems, total, products, customer) {
     '',
     ...lines,
     '',
+    `مجموع المنتجات: ${subtotal} ₪`,
+    deliveryPrice ? `التوصيل (${deliveryArea}): ${deliveryPrice} ₪` : '',
     `الإجمالي: ${total} ₪`,
     '',
     `الاسم: ${customer.name}`,
     `رقم الهاتف: ${customer.phone}`,
     `العنوان: ${customer.address}`,
+    deliveryArea ? `منطقة التوصيل: ${deliveryArea}` : '',
     '',
     'شكراً لكم.',
-  ].join('\n')
+  ].filter(Boolean).join('\n')
 
   return encodeURIComponent(message)
 }
@@ -38,6 +41,8 @@ export default function CartPage() {
   const [submitting, setSubmitting] = useState(false)
   const [orderSent, setOrderSent] = useState(false)
   const [orderNote, setOrderNote] = useState('')
+  const [deliveryAreas, setDeliveryAreas] = useState([])
+  const [selectedDeliveryArea, setSelectedDeliveryArea] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -45,16 +50,17 @@ export default function CartPage() {
     storage.getProducts().then((data) => {
       const activeProducts = data.filter((p) => p.isActive !== false)
       setProducts(activeProducts)
-      // If cart has old localStorage IDs that don't match API IDs, clear it
       const validIds = new Set(activeProducts.map((p) => String(p.id)))
       const hasInvalid = cartItems.some((item) => !validIds.has(String(item.productId)))
       if (hasInvalid) clearCart()
     }).catch(() => setProducts([]))
+    storage.getDeliveryAreas().then((areas) => setDeliveryAreas(areas)).catch(() => setDeliveryAreas([]))
     const saved = localStorage.getItem('beauty_touch_customer')
     if (saved) {
       try {
         const data = JSON.parse(saved)
         setCustomer({ name: data.name || '', phone: data.phone || '', address: data.address || '', notes: data.notes || '' })
+        if (data.deliveryArea) setSelectedDeliveryArea(data.deliveryArea)
       } catch { /* ignore */ }
     }
   }, [])
@@ -69,16 +75,22 @@ export default function CartPage() {
       .filter(Boolean)
   }, [cartItems, products])
 
-  const total = cartProducts.reduce((sum, p) => {
+  const subtotal = cartProducts.reduce((sum, p) => {
     const priceToUse = p.discountedPrice || p.price
     return sum + priceToUse * p.quantity
   }, 0)
+
+  const deliveryPrice = selectedDeliveryArea
+    ? (deliveryAreas.find((a) => String(a.id) === String(selectedDeliveryArea))?.price || 0)
+    : 0
+  const total = subtotal + deliveryPrice
 
   const validate = () => {
     const errs = {}
     if (!customer.name.trim()) errs.name = 'الاسم مطلوب'
     if (!customer.phone.trim()) errs.phone = 'رقم الهاتف مطلوب'
     if (!customer.address.trim()) errs.address = 'العنوان مطلوب'
+    if (!selectedDeliveryArea) errs.deliveryArea = 'يرجى اختيار منطقة التوصيل'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -86,16 +98,23 @@ export default function CartPage() {
   const handleCustomerChange = (field, value) => {
     const updated = { ...customer, [field]: value }
     setCustomer(updated)
-    localStorage.setItem('beauty_touch_customer', JSON.stringify(updated))
+    localStorage.setItem('beauty_touch_customer', JSON.stringify({ ...updated, deliveryArea: selectedDeliveryArea }))
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }))
+  }
+
+  const handleDeliveryChange = (value) => {
+    setSelectedDeliveryArea(value)
+    localStorage.setItem('beauty_touch_customer', JSON.stringify({ ...customer, deliveryArea: value }))
+    if (errors.deliveryArea) setErrors((prev) => ({ ...prev, deliveryArea: undefined }))
   }
 
   const handleSubmitOrder = async () => {
     if (!validate()) return
     setSubmitting(true)
     try {
-      const items = cartProducts.map((p) => ({ name: p.name, price: p.price, quantity: p.quantity }))
+      const items = cartProducts.map((p) => ({ name: p.name, price: p.discountedPrice || p.price, quantity: p.quantity }))
       const combinedNotes = [orderNote, customer.notes].filter(Boolean).join('\n') || null
+      const area = deliveryAreas.find((a) => String(a.id) === String(selectedDeliveryArea))
       await storage.createOrder({
         customer_name: customer.name,
         phone: customer.phone,
@@ -103,8 +122,10 @@ export default function CartPage() {
         items,
         total,
         notes: combinedNotes,
+        delivery_area: area?.name || '',
+        delivery_price: deliveryPrice,
       })
-      localStorage.setItem('beauty_touch_customer', JSON.stringify(customer))
+      localStorage.setItem('beauty_touch_customer', JSON.stringify({ ...customer, deliveryArea: selectedDeliveryArea }))
       clearCart()
       setOrderSent(true)
     } catch {
@@ -236,6 +257,16 @@ export default function CartPage() {
                 <span className="text-black-light">عدد المنتجات</span>
                 <span className="font-medium">{cartItems.reduce((s, i) => s + i.quantity, 0)}</span>
               </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-black-light">مجموع المنتجات</span>
+                <span className="font-medium">{subtotal} ₪</span>
+              </div>
+              {deliveryPrice > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-black-light">التوصيل</span>
+                  <span className="font-medium">{deliveryPrice} ₪</span>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-between items-center">
@@ -291,6 +322,27 @@ export default function CartPage() {
                   />
                 </div>
                 {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-black mb-1">منطقة التوصيل *</label>
+                <div className="relative">
+                  <Truck className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black-light" />
+                  <select
+                    value={selectedDeliveryArea}
+                    onChange={(e) => handleDeliveryChange(e.target.value)}
+                    className={`w-full pr-9 pl-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold appearance-none bg-white ${errors.deliveryArea ? 'border-red-300' : 'border-gray-200'}`}
+                    dir="rtl"
+                  >
+                    <option value="">اختر المنطقة...</option>
+                    {deliveryAreas.map((area) => (
+                      <option key={area.id} value={String(area.id)}>
+                        {area.name} — {area.price} ₪
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {errors.deliveryArea && <p className="text-xs text-red-500 mt-1">{errors.deliveryArea}</p>}
               </div>
 
               <div>

@@ -100,13 +100,13 @@ app.patch('/api/products/:id/toggle', (req, res) => {
 
 // ─── Orders ───
 app.post('/api/orders', (req, res) => {
-  const { customer_name, phone, address, items, total, notes } = req.body
+  const { customer_name, phone, address, items, total, notes, delivery_area, delivery_price } = req.body
   const stmt = db.prepare(`
-    INSERT INTO orders (customer_name, phone, address, items, total, notes)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO orders (customer_name, phone, address, items, total, notes, delivery_area, delivery_price)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `)
   const result = stmt.run(
-    customer_name, phone, address || '', JSON.stringify(items || []), total, notes || ''
+    customer_name, phone, address || '', JSON.stringify(items || []), total, notes || '', delivery_area || '', delivery_price || 0
   )
   res.status(201).json({ id: result.lastInsertRowid })
 })
@@ -151,6 +151,48 @@ app.get('/api/admin/export', (_req, res) => {
   res.sendFile(dbPath, { root: process.cwd() }, (err) => {
     if (err) res.status(500).json({ error: 'Export failed' })
   })
+})
+
+// ─── Delivery Areas ───
+app.get('/api/delivery-areas', (_req, res) => {
+  const rows = db.prepare('SELECT * FROM delivery_areas ORDER BY name ASC').all()
+  res.json(rows)
+})
+
+app.post('/api/admin/delivery-areas', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const { name, price } = req.body
+  if (!name || price === undefined || price === null) {
+    return res.status(400).json({ error: 'Name and price are required' })
+  }
+  const stmt = db.prepare('INSERT INTO delivery_areas (name, price) VALUES (?, ?)')
+  const result = stmt.run(name, price)
+  res.status(201).json({ id: result.lastInsertRowid, name, price })
+})
+
+app.put('/api/admin/delivery-areas/:id', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const { name, price } = req.body
+  if (!name || price === undefined || price === null) {
+    return res.status(400).json({ error: 'Name and price are required' })
+  }
+  db.prepare('UPDATE delivery_areas SET name = ?, price = ? WHERE id = ?').run(name, price, req.params.id)
+  res.json({ success: true })
+})
+
+app.delete('/api/admin/delivery-areas/:id', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  db.prepare('DELETE FROM delivery_areas WHERE id = ?').run(req.params.id)
+  res.json({ success: true })
 })
 
 app.get('/api/admin/stats', (_req, res) => {
