@@ -67,6 +67,24 @@ export const categories = [
     hasSubcategories: false,
   },
   {
+    id: 'face-masks',
+    name: 'ماسكات الوجه',
+    slug: 'face-masks',
+    hasSubcategories: false,
+  },
+  {
+    id: 'eye-care',
+    name: 'العناية بمحيط العين',
+    slug: 'eye-care',
+    hasSubcategories: false,
+  },
+  {
+    id: 'face-wash',
+    name: 'غسولات الوجه',
+    slug: 'face-wash',
+    hasSubcategories: false,
+  },
+  {
     id: 'clinic-supplies',
     name: 'مستلزمات العيادات',
     slug: 'clinic-supplies',

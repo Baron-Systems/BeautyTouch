@@ -12,6 +12,9 @@ const promoCategories = [
   { slug: 'injections', name: 'الحقن التجميلية', icon: Star, color: 'from-gold to-gold-dark', desc: 'فيلر، بوتكس، سكين بوستر' },
   { slug: 'skincare', name: 'العناية بالبشرة', icon: Sparkles, color: 'from-black to-black-light', desc: 'منتجات متخصصة للبشرة' },
   { slug: 'creams', name: 'الكريمات والسيرومات', icon: ShoppingBag, color: 'from-gold to-gold-dark', desc: 'أفضل الماركات العالمية' },
+  { slug: 'face-masks', name: 'ماسكات الوجه', icon: Sparkles, color: 'from-gold to-gold-dark', desc: 'ماسكات متخصصة للبشرة' },
+  { slug: 'eye-care', name: 'العناية بمحيط العين', icon: Sparkles, color: 'from-black to-black-light', desc: 'كريمات وسيرومات العين' },
+  { slug: 'face-wash', name: 'غسولات الوجه', icon: ShoppingBag, color: 'from-gold to-gold-dark', desc: 'غسولات منظفة للبشرة' },
 ]
 
 const brands = [
