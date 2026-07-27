@@ -87,6 +87,14 @@ try {
   console.log('Migrated: added discountedPrice to products')
 }
 
+// Migrate: add costPrice if missing
+try {
+  db.prepare('SELECT costPrice FROM products LIMIT 1').get()
+} catch {
+  db.exec('ALTER TABLE products ADD COLUMN costPrice INTEGER')
+  console.log('Migrated: added costPrice to products')
+}
+
 // Admin table
 db.exec(`
   CREATE TABLE IF NOT EXISTS admin (

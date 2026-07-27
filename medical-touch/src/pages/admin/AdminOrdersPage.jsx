@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ClipboardList, Package, CheckCircle, Truck, XCircle, Clock, ArrowLeft, Power, Eye, X, MapPin, Phone, User, Calendar, Download, LogOut, Lock, FileText, Save, Pencil, CheckCircle2, AlertCircle, Search } from 'lucide-react'
+import { ClipboardList, Package, CheckCircle, Truck, XCircle, Clock, ArrowLeft, Power, Eye, X, MapPin, Phone, User, Calendar, Download, LogOut, Lock, FileText, Save, Pencil, CheckCircle2, AlertCircle, Search, TrendingUp } from 'lucide-react'
 import { storage } from '../../services/storage.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import Logo from '../../components/Logo.jsx'
@@ -139,6 +139,13 @@ export default function AdminOrdersPage() {
               >
                 <Truck className="w-4 h-4" />
                 <span>التوصيل</span>
+              </Link>
+              <Link
+                to="/admin/profits"
+                className="flex items-center gap-2 text-sm px-4 py-2 bg-white border border-gray-200 rounded-button hover:border-gold hover:text-gold transition-colors"
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span>الأرباح</span>
               </Link>
               <a
                 href="/api/admin/export"

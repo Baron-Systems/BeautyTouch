@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, Pencil, Trash2, LogOut, Package, Power, ClipboardList, Lock, X, Search, Truck } from 'lucide-react'
+import { Plus, Pencil, Trash2, LogOut, Package, Power, ClipboardList, Lock, X, Search, Truck, TrendingUp } from 'lucide-react'
 import { storage } from '../../services/storage.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import Logo from '../../components/Logo.jsx'
@@ -17,20 +17,20 @@ export default function AdminProductsPage() {
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
-    storage.getProducts().then(setProducts).catch(() => setProducts([]))
+    storage.getAdminProducts().then(setProducts).catch(() => setProducts([]))
   }, [])
 
   const handleDelete = async (id) => {
     if (window.confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
       await storage.deleteProduct(id)
-      const updated = await storage.getProducts()
+      const updated = await storage.getAdminProducts()
       setProducts(updated)
     }
   }
 
   const handleToggle = async (id) => {
     await storage.toggleProduct(id)
-    const updated = await storage.getProducts()
+    const updated = await storage.getAdminProducts()
     setProducts(updated)
   }
 
@@ -92,6 +92,13 @@ export default function AdminProductsPage() {
               >
                 <Truck className="w-4 h-4" />
                 <span>التوصيل</span>
+              </Link>
+              <Link
+                to="/admin/profits"
+                className="flex items-center gap-2 text-sm px-4 py-2 bg-white border border-gray-200 rounded-button hover:border-gold hover:text-gold transition-colors"
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span>الأرباح</span>
               </Link>
               <Link
                 to="/admin/products/new"

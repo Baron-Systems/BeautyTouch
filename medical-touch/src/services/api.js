@@ -25,8 +25,26 @@ export const api = {
   // Products
   getProducts: () => fetchJSON('/products'),
   getProduct: (id) => fetchJSON(`/products/${id}`),
-  createProduct: (product) => fetchJSON('/products', { method: 'POST', body: JSON.stringify(product) }),
-  updateProduct: (id, product) => fetchJSON(`/products/${id}`, { method: 'PUT', body: JSON.stringify(product) }),
+  getAdminProducts: () =>
+    fetchJSON('/admin/products', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
+  getAdminProduct: (id) =>
+    fetchJSON(`/admin/products/${id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
+  createProduct: (product) =>
+    fetchJSON('/products', {
+      method: 'POST',
+      body: JSON.stringify(product),
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
+  updateProduct: (id, product) =>
+    fetchJSON(`/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(product),
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
   deleteProduct: (id) => fetchJSON(`/products/${id}`, { method: 'DELETE' }),
   toggleProduct: (id) => fetchJSON(`/products/${id}/toggle`, { method: 'PATCH' }),
 
@@ -48,6 +66,13 @@ export const api = {
     }),
   getAdminOrders: () => fetchJSON('/admin/orders'),
   getAdminStats: () => fetchJSON('/admin/stats'),
+  getAdminProfitsReport: (from, to) => {
+    const params = new URLSearchParams()
+    if (from) params.append('from', from)
+    if (to) params.append('to', to)
+    const query = params.toString()
+    return fetchJSON(`/admin/profits-report${query ? `?${query}` : ''}`)
+  },
   updateSetting: (key, value) =>
     fetchJSON(`/admin/settings/${key}`, {
       method: 'PATCH',

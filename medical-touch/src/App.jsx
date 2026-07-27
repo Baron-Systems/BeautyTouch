@@ -14,6 +14,7 @@ import AdminLoginPage from './pages/admin/AdminLoginPage.jsx'
 import AdminProductsPage from './pages/admin/AdminProductsPage.jsx'
 import AdminProductForm from './pages/admin/AdminProductForm.jsx'
 import AdminOrdersPage from './pages/admin/AdminOrdersPage.jsx'
+import AdminProfitsPage from './pages/admin/AdminProfitsPage.jsx'
 import AdminDeliveryPage from './pages/admin/AdminDeliveryPage.jsx'
 import MyOrdersPage from './pages/MyOrdersPage.jsx'
 
@@ -64,6 +65,14 @@ function AppContent() {
           element={
             <AdminRoute>
               <AdminOrdersPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/profits"
+          element={
+            <AdminRoute>
+              <AdminProfitsPage />
             </AdminRoute>
           }
         />

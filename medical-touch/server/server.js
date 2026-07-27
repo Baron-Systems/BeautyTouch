@@ -32,6 +32,23 @@ function mapProduct(p) {
   }
 }
 
+function mapAdminProduct(p) {
+  return {
+    id: p.id,
+    name: p.name,
+    category: p.category,
+    subcategory: p.subcategory,
+    price: p.price,
+    discountedPrice: p.discountedPrice,
+    costPrice: p.costPrice,
+    image: p.image,
+    description: p.description,
+    isBestSeller: !!p.isBestSeller,
+    isNew: !!p.isNew,
+    isActive: p.isActive !== 0,
+  }
+}
+
 // ─── Categories ───
 app.get('/api/categories', (_req, res) => {
   const rows = db.prepare('SELECT * FROM categories').all()
@@ -59,27 +76,46 @@ app.get('/api/products/:id', (req, res) => {
   res.json(mapProduct(row))
 })
 
+app.get('/api/admin/products', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const rows = db.prepare('SELECT * FROM products').all()
+  res.json(rows.map(mapAdminProduct))
+})
+
+app.get('/api/admin/products/:id', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const row = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id)
+  if (!row) return res.status(404).json({ error: 'Product not found' })
+  res.json(mapAdminProduct(row))
+})
+
 app.post('/api/products', (req, res) => {
-  const { name, category, subcategory, price, discountedPrice, image, description, isBestSeller, isNew, isActive } = req.body
+  const { name, category, subcategory, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive } = req.body
   console.log('POST /api/products - discountedPrice:', discountedPrice)
   const stmt = db.prepare(`
-    INSERT INTO products (name, category, subcategory, price, discountedPrice, image, description, isBestSeller, isNew, isActive)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO products (name, category, subcategory, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
   const result = stmt.run(
-    name, category, subcategory || null, price, discountedPrice || null, image || '', description || '',
+    name, category, subcategory || null, price, discountedPrice || null, costPrice || null, image || '', description || '',
     isBestSeller ? 1 : 0, isNew ? 1 : 0, isActive !== false ? 1 : 0
   )
   res.status(201).json({ id: result.lastInsertRowid })
 })
 
 app.put('/api/products/:id', (req, res) => {
-  const { name, category, subcategory, price, discountedPrice, image, description, isBestSeller, isNew, isActive } = req.body
+  const { name, category, subcategory, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive } = req.body
   db.prepare(`
-    UPDATE products SET name = ?, category = ?, subcategory = ?, price = ?, discountedPrice = ?, image = ?, description = ?, isBestSeller = ?, isNew = ?, isActive = ?
+    UPDATE products SET name = ?, category = ?, subcategory = ?, price = ?, discountedPrice = ?, costPrice = ?, image = ?, description = ?, isBestSeller = ?, isNew = ?, isActive = ?
     WHERE id = ?
   `).run(
-    name, category, subcategory || null, price, discountedPrice || null, image || '', description || '',
+    name, category, subcategory || null, price, discountedPrice || null, costPrice || null, image || '', description || '',
     isBestSeller ? 1 : 0, isNew ? 1 : 0, isActive !== false ? 1 : 0, req.params.id
   )
   res.json({ success: true })
@@ -101,12 +137,19 @@ app.patch('/api/products/:id/toggle', (req, res) => {
 // ─── Orders ───
 app.post('/api/orders', (req, res) => {
   const { customer_name, phone, address, items, total, notes, delivery_area, delivery_price } = req.body
+  const products = db.prepare('SELECT name, costPrice FROM products').all()
+  const costByName = {}
+  products.forEach((p) => { costByName[p.name] = p.costPrice || 0 })
+  const enrichedItems = (items || []).map((item) => ({
+    ...item,
+    costPrice: costByName[item.name] || 0,
+  }))
   const stmt = db.prepare(`
     INSERT INTO orders (customer_name, phone, address, items, total, notes, delivery_area, delivery_price)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `)
   const result = stmt.run(
-    customer_name, phone, address || '', JSON.stringify(items || []), total, notes || '', delivery_area || '', delivery_price || 0
+    customer_name, phone, address || '', JSON.stringify(enrichedItems), total, notes || '', delivery_area || '', delivery_price || 0
   )
   res.status(201).json({ id: result.lastInsertRowid })
 })
@@ -193,6 +236,66 @@ app.delete('/api/admin/delivery-areas/:id', (req, res) => {
   }
   db.prepare('DELETE FROM delivery_areas WHERE id = ?').run(req.params.id)
   res.json({ success: true })
+})
+
+app.get('/api/admin/profits-report', (req, res) => {
+  const { from, to } = req.query
+  const conditions = ["status != 'cancelled'"]
+  const params = []
+  if (from) {
+    conditions.push('DATE(created_at) >= DATE(?)')
+    params.push(from)
+  }
+  if (to) {
+    conditions.push('DATE(created_at) <= DATE(?)')
+    params.push(to)
+  }
+  const where = conditions.join(' AND ')
+
+  const products = db.prepare('SELECT name, costPrice FROM products').all()
+  const costByName = {}
+  products.forEach((p) => { costByName[p.name] = p.costPrice || 0 })
+
+  const orders = db.prepare(`SELECT * FROM orders WHERE ${where} ORDER BY created_at DESC`).all(...params)
+  const enrichedOrders = orders.map((o) => {
+    const items = JSON.parse(o.items)
+    let cost = 0
+    items.forEach((item) => {
+      const itemCost = item.costPrice !== undefined ? item.costPrice : (costByName[item.name] || 0)
+      cost += (itemCost || 0) * (item.quantity || 1)
+    })
+    const revenue = o.total || 0
+    const profit = revenue - cost
+    return { ...o, items, cost, revenue, profit }
+  })
+
+  const summary = enrichedOrders.reduce((acc, o) => {
+    acc.revenue += o.revenue
+    acc.cost += o.cost
+    acc.profit += o.profit
+    acc.count += 1
+    return acc
+  }, { revenue: 0, cost: 0, profit: 0, count: 0 })
+
+  const statusGroups = {}
+  enrichedOrders.forEach((o) => {
+    if (!statusGroups[o.status]) {
+      statusGroups[o.status] = { status: o.status, revenue: 0, cost: 0, profit: 0, count: 0 }
+    }
+    statusGroups[o.status].revenue += o.revenue
+    statusGroups[o.status].cost += o.cost
+    statusGroups[o.status].profit += o.profit
+    statusGroups[o.status].count += 1
+  })
+
+  res.json({
+    revenue: summary.revenue,
+    cost: summary.cost,
+    profit: summary.profit,
+    count: summary.count,
+    byStatus: Object.values(statusGroups),
+    orders: enrichedOrders,
+  })
 })
 
 app.get('/api/admin/stats', (_req, res) => {

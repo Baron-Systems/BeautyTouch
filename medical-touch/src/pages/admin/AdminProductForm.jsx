@@ -16,6 +16,7 @@ export default function AdminProductForm() {
     subcategory: '',
     price: '',
     discountedPrice: '',
+    costPrice: '',
     image: '',
     description: '',
     isBestSeller: false,
@@ -27,7 +28,7 @@ export default function AdminProductForm() {
 
   useEffect(() => {
     if (isEdit) {
-      storage.getProductById(productId).then((product) => {
+      storage.getAdminProductById(productId).then((product) => {
         if (product) {
           setForm({
             name: product.name || '',
@@ -35,6 +36,7 @@ export default function AdminProductForm() {
             subcategory: product.subcategory || '',
             price: String(product.price) || '',
             discountedPrice: product.discountedPrice ? String(product.discountedPrice) : '',
+            costPrice: product.costPrice ? String(product.costPrice) : '',
             image: product.image || '',
             description: product.description || '',
             isBestSeller: product.isBestSeller || false,
@@ -114,6 +116,7 @@ export default function AdminProductForm() {
       ...form,
       price: Number(form.price),
       discountedPrice: form.discountedPrice && form.discountedPrice.trim() !== '' ? Number(form.discountedPrice) : null,
+      costPrice: form.costPrice && form.costPrice.trim() !== '' ? Number(form.costPrice) : null,
       subcategory: form.subcategory || null,
     }
 
@@ -252,6 +255,20 @@ export default function AdminProductForm() {
               min="0"
             />
             <p className="text-xs text-black-light mt-1">اتركه فارغاً إذا لم يكن هناك خصم</p>
+          </div>
+
+          {/* Cost Price */}
+          <div>
+            <label className="block text-sm font-medium text-black mb-2">سعر التكلفة (₪)</label>
+            <input
+              type="number"
+              value={form.costPrice}
+              onChange={(e) => handleChange('costPrice', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold transition-colors text-sm"
+              placeholder="مثال: 200"
+              min="0"
+            />
+            <p className="text-xs text-black-light mt-1">لحساب الربح في التقرير، لا يظهر للزبون</p>
           </div>
 
           {/* Image */}

@@ -20,6 +20,20 @@ export const storage = {
       return null
     }
   },
+  getAdminProducts: async () => {
+    try {
+      return await api.getAdminProducts()
+    } catch {
+      return []
+    }
+  },
+  getAdminProductById: async (id) => {
+    try {
+      return await api.getAdminProduct(id)
+    } catch {
+      return null
+    }
+  },
   addProduct: async (product) => {
     return await api.createProduct(product)
   },
@@ -71,6 +85,13 @@ export const storage = {
       return await api.getAdminOrders()
     } catch {
       return []
+    }
+  },
+  getAdminProfitsReport: async (from, to) => {
+    try {
+      return await api.getAdminProfitsReport(from, to)
+    } catch {
+      return { total: 0, count: 0, byStatus: [], orders: [] }
     }
   },
 
