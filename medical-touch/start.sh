@@ -10,6 +10,9 @@ if [ -d "medical-touch" ]; then
   cd medical-touch
 fi
 
+# Config: change this to the port you want
+PORT=3001
+
 echo "========================================"
 echo "    Beauty Touch - Build & Start"
 echo "========================================"
@@ -37,15 +40,15 @@ else
 fi
 cd ..
 
-# Step 4: Stop any existing server on port 3001
+# Step 4: Stop any existing server on port $PORT
 echo "[4/4] Stopping any existing server..."
 pkill -f "server/server.js" 2>/dev/null || true
 pkill -f "node server.js" 2>/dev/null || true
 for i in {1..5}; do
-  if ! ss -tuln 2>/dev/null | grep -q ":3001 "; then
+  if ! ss -tuln 2>/dev/null | grep -q ":$PORT "; then
     break
   fi
-  echo "  -> waiting for port 3001 to be released..."
+  echo "  -> waiting for port $PORT to be released..."
   sleep 1
 done
 
@@ -53,8 +56,8 @@ done
 echo "[5/5] Starting server..."
 echo ""
 echo "========================================"
-echo "  App ready at: http://localhost:3001"
-echo "  Admin login:  http://localhost:3001/#/admin/login"
+echo "  App ready at: http://localhost:$PORT"
+echo "  Admin login:  http://localhost:$PORT/#/admin/login"
 echo "  Password:     medical2025"
 echo "========================================"
 echo ""

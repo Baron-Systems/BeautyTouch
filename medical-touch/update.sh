@@ -8,6 +8,9 @@ set -e
 # Ensure script runs from the project directory
 cd "$(dirname "$0")"
 
+# Config: change this to the port you want
+PORT=3001
+
 echo "========================================"
 echo "    Beauty Touch - Auto Deploy"
 echo "========================================"
@@ -53,16 +56,16 @@ if command -v pm2 &> /dev/null; then
   echo "App restarted with pm2"
 else
   echo "Restarting server..."
-  # Kill any process running the server script or listening on port 3001
+  # Kill any process running the server script or listening on port $PORT
   pkill -f "server/server.js" 2>/dev/null || true
   pkill -f "node server.js" 2>/dev/null || true
 
-  # Wait for port 3001 to be free (up to 10 seconds)
+  # Wait for port $PORT to be free (up to 10 seconds)
   for i in {1..10}; do
-    if ! ss -tuln 2>/dev/null | grep -q ":3001 "; then
+    if ! ss -tuln 2>/dev/null | grep -q ":$PORT "; then
       break
     fi
-    echo "  -> waiting for port 3001 to be released..."
+    echo "  -> waiting for port $PORT to be released..."
     sleep 1
   done
 
@@ -72,7 +75,7 @@ else
 
   # Quick health check
   sleep 2
-  if curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/api/categories 2>/dev/null | grep -q "200\|304"; then
+  if curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/api/categories 2>/dev/null | grep -q "200\|304"; then
     echo "Health check passed"
   else
     echo "Warning: health check failed, check app.log for details"
@@ -80,4 +83,4 @@ else
 fi
 
 echo ""
-echo "App ready at: http://localhost:3001"
+echo "App ready at: http://localhost:$PORT"
