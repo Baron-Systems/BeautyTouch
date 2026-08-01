@@ -18,17 +18,10 @@ export const categories = [
     hasSubcategories: false,
   },
   {
-    id: 'injections',
-    name: 'الحقن التجميلية',
-    slug: 'injections',
-    hasSubcategories: true,
-    subcategories: [
-      { id: 'filler', name: 'فيلر', slug: 'filler' },
-      { id: 'botox', name: 'بوتكس', slug: 'botox' },
-      { id: 'skin-booster', name: 'سكين بوستر', slug: 'skin-booster' },
-      { id: 'mesotherapy', name: 'ميزوثيرابي', slug: 'mesotherapy' },
-      { id: 'collagen', name: 'محفزات الكولاجين', slug: 'collagen' },
-    ],
+    id: 'packages',
+    name: 'البكجات',
+    slug: 'packages',
+    hasSubcategories: false,
   },
   {
     id: 'skincare',
@@ -37,33 +30,9 @@ export const categories = [
     hasSubcategories: false,
   },
   {
-    id: 'bodycare',
-    name: 'العناية بالجسم',
-    slug: 'bodycare',
-    hasSubcategories: false,
-  },
-  {
     id: 'haircare',
     name: 'العناية بالشعر',
     slug: 'haircare',
-    hasSubcategories: false,
-  },
-  {
-    id: 'sunscreen',
-    name: 'واقيات الشمس',
-    slug: 'sunscreen',
-    hasSubcategories: false,
-  },
-  {
-    id: 'creams',
-    name: 'الكريمات والسيرومات',
-    slug: 'creams',
-    hasSubcategories: false,
-  },
-  {
-    id: 'devices',
-    name: 'أجهزة التجميل',
-    slug: 'devices',
     hasSubcategories: false,
   },
   {
@@ -79,15 +48,33 @@ export const categories = [
     hasSubcategories: false,
   },
   {
+    id: 'bodycare',
+    name: 'العناية بالجسم',
+    slug: 'bodycare',
+    hasSubcategories: false,
+  },
+  {
+    id: 'creams',
+    name: 'الكريمات والسيرومات',
+    slug: 'creams',
+    hasSubcategories: false,
+  },
+  {
+    id: 'sunscreen',
+    name: 'واقيات الشمس',
+    slug: 'sunscreen',
+    hasSubcategories: false,
+  },
+  {
     id: 'face-wash',
     name: 'غسولات الوجه',
     slug: 'face-wash',
     hasSubcategories: false,
   },
   {
-    id: 'clinic-supplies',
-    name: 'مستلزمات العيادات',
-    slug: 'clinic-supplies',
+    id: 'devices',
+    name: 'أجهزة التجميل',
+    slug: 'devices',
     hasSubcategories: false,
   },
   {
@@ -100,6 +87,25 @@ export const categories = [
     id: 'aftercare',
     name: 'العناية بعد الإجراءات',
     slug: 'aftercare',
+    hasSubcategories: false,
+  },
+  {
+    id: 'injections',
+    name: 'الحقن التجميلية',
+    slug: 'injections',
+    hasSubcategories: true,
+    subcategories: [
+      { id: 'filler', name: 'فيلر', slug: 'filler' },
+      { id: 'botox', name: 'بوتكس', slug: 'botox' },
+      { id: 'skin-booster', name: 'سكين بوستر', slug: 'skin-booster' },
+      { id: 'mesotherapy', name: 'ميزوثيرابي', slug: 'mesotherapy' },
+      { id: 'collagen', name: 'محفزات الكولاجين', slug: 'collagen' },
+    ],
+  },
+  {
+    id: 'clinic-supplies',
+    name: 'مستلزمات العيادات',
+    slug: 'clinic-supplies',
     hasSubcategories: false,
   },
 ]
