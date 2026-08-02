@@ -58,12 +58,22 @@ export const api = {
   // Admin
   loginAdmin: (password) => fetchJSON('/admin/login', { method: 'POST', body: JSON.stringify({ password }) }),
   checkAdmin: (token) => fetchJSON('/admin/check', { headers: { Authorization: `Bearer ${token}` } }),
-  importDatabase: (base64File) =>
-    fetchJSON('/admin/import', {
+  importDatabase: async (file) => {
+    const url = `${API_URL}/admin/import`
+    const res = await fetch(url, {
       method: 'POST',
-      body: JSON.stringify({ file: base64File }),
-      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
-    }),
+      body: file,
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}`,
+      },
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || `HTTP ${res.status}`)
+    }
+    return res.json()
+  },
   changeAdminPassword: (currentPassword, newPassword) =>
     fetchJSON('/admin/password', {
       method: 'PATCH',

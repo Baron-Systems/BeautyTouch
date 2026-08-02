@@ -80,9 +80,9 @@ export const storage = {
       return {}
     }
   },
-  importDatabase: async (base64File) => {
+  importDatabase: async (file) => {
     try {
-      return await api.importDatabase(base64File)
+      return await api.importDatabase(file)
     } catch (err) {
       return { success: false, error: err.message }
     }

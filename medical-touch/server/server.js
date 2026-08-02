@@ -201,17 +201,16 @@ app.get('/api/admin/export', (_req, res) => {
   })
 })
 
-app.post('/api/admin/import', (req, res) => {
+app.post('/api/admin/import', express.raw({ type: 'application/octet-stream', limit: '500mb' }), (req, res) => {
   const auth = req.headers.authorization
   if (auth !== 'Bearer beauty-touch-admin-token') {
     return res.status(401).json({ success: false, error: 'Unauthorized' })
   }
-  const { file } = req.body
-  if (!file || typeof file !== 'string') {
+  const buffer = req.body
+  if (!buffer || !Buffer.isBuffer(buffer) || buffer.length === 0) {
     return res.status(400).json({ error: 'No file provided' })
   }
   try {
-    const buffer = Buffer.from(file, 'base64')
     const dbPath = path.resolve('db.sqlite')
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
     const backupPath = `${dbPath}.backup.${timestamp}`

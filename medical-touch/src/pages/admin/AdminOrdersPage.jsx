@@ -142,10 +142,8 @@ export default function AdminOrdersPage() {
     }
     setImporting(true)
     setImportMessage({ type: '', text: '' })
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      const base64 = e.target.result.split(',')[1]
-      const res = await storage.importDatabase(base64)
+    try {
+      const res = await storage.importDatabase(importFile)
       setImporting(false)
       if (res.success) {
         setImportMessage({ type: 'success', text: 'تم استرجاع قاعدة البيانات بنجاح' })
@@ -155,12 +153,10 @@ export default function AdminOrdersPage() {
       } else {
         setImportMessage({ type: 'error', text: res.error || 'فشل الاسترجاع' })
       }
-    }
-    reader.onerror = () => {
+    } catch (err) {
       setImporting(false)
-      setImportMessage({ type: 'error', text: 'فشل قراءة الملف' })
+      setImportMessage({ type: 'error', text: err.message || 'فشل الاسترجاع' })
     }
-    reader.readAsDataURL(importFile)
   }
 
   return (
