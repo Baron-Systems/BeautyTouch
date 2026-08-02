@@ -9,7 +9,7 @@ set -e
 cd "$(dirname "$0")"
 
 # Config: change this to the port you want
-PORT=3001
+PORT=4356
 
 echo "========================================"
 echo "    Beauty Touch - Auto Deploy"

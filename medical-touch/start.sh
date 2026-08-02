@@ -11,7 +11,7 @@ if [ -d "medical-touch" ]; then
 fi
 
 # Config: change this to the port you want
-PORT=3001
+PORT=4356
 
 echo "========================================"
 echo "    Beauty Touch - Build & Start"
