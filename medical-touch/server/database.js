@@ -95,6 +95,14 @@ try {
   console.log('Migrated: added costPrice to products')
 }
 
+// Migrate: add sortOrder if missing
+try {
+  db.prepare('SELECT sortOrder FROM products LIMIT 1').get()
+} catch {
+  db.exec('ALTER TABLE products ADD COLUMN sortOrder INTEGER DEFAULT 0')
+  console.log('Migrated: added sortOrder to products')
+}
+
 // Admin table
 db.exec(`
   CREATE TABLE IF NOT EXISTS admin (
@@ -120,6 +128,23 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `)
+
+// Brands table
+db.exec(`
+  CREATE TABLE IF NOT EXISTS brands (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
+
+// Migrate: add brand if missing
+try {
+  db.prepare('SELECT brand FROM products LIMIT 1').get()
+} catch {
+  db.exec('ALTER TABLE products ADD COLUMN brand TEXT')
+  console.log('Migrated: added brand to products')
+}
 
 // Migrate: add delivery_area and delivery_price to orders if missing
 try {
@@ -168,6 +193,14 @@ function seedIfEmpty() {
       insertCat.run(c.slug, c.name, subs)
     })
     console.log('Seeded', categories.length, 'categories')
+  }
+
+  const brandCount = db.prepare('SELECT COUNT(*) as count FROM brands').get()
+  if (brandCount.count === 0) {
+    const defaultBrands = ['Restylane', 'Allergan', 'Profhilo', 'La Roche-Posay', 'Mesoestetic', 'Sculptra', 'PCA Skin', 'SkinCeuticals', 'Juvederm', 'Teoxane']
+    const insertBrand = db.prepare('INSERT INTO brands (name) VALUES (?)')
+    defaultBrands.forEach((name) => insertBrand.run(name))
+    console.log('Seeded', defaultBrands.length, 'brands')
   }
 
   const adminRow = db.prepare('SELECT COUNT(*) as count FROM admin').get()

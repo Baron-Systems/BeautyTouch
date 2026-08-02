@@ -104,6 +104,43 @@ export const storage = {
     }
   },
 
+  // Brands (API)
+  getBrands: async () => {
+    try {
+      return await api.getBrands()
+    } catch {
+      return []
+    }
+  },
+  getBrand: async (id) => {
+    try {
+      return await api.getBrand(id)
+    } catch {
+      return null
+    }
+  },
+  createBrand: async (name) => {
+    try {
+      return await api.createBrand(name)
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  },
+  updateBrand: async (id, name) => {
+    try {
+      return await api.updateBrand(id, name)
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  },
+  deleteBrand: async (id) => {
+    try {
+      return await api.deleteBrand(id)
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  },
+
   // Cart (localStorage)
   getCart: () => {
     const data = localStorage.getItem(CART_KEY)

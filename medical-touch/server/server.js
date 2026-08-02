@@ -22,6 +22,7 @@ function mapProduct(p) {
     name: p.name,
     category: p.category,
     subcategory: p.subcategory,
+    brand: p.brand || null,
     price: p.price,
     discountedPrice: p.discountedPrice,
     image: p.image,
@@ -29,6 +30,7 @@ function mapProduct(p) {
     isBestSeller: !!p.isBestSeller,
     isNew: !!p.isNew,
     isActive: p.isActive !== 0,
+    sortOrder: p.sortOrder ?? 0,
   }
 }
 
@@ -38,6 +40,7 @@ function mapAdminProduct(p) {
     name: p.name,
     category: p.category,
     subcategory: p.subcategory,
+    brand: p.brand || null,
     price: p.price,
     discountedPrice: p.discountedPrice,
     costPrice: p.costPrice,
@@ -46,6 +49,7 @@ function mapAdminProduct(p) {
     isBestSeller: !!p.isBestSeller,
     isNew: !!p.isNew,
     isActive: p.isActive !== 0,
+    sortOrder: p.sortOrder ?? 0,
   }
 }
 
@@ -66,7 +70,7 @@ app.get('/api/categories/:slug', (req, res) => {
 
 // ─── Products ───
 app.get('/api/products', (_req, res) => {
-  const rows = db.prepare('SELECT * FROM products').all()
+  const rows = db.prepare('SELECT * FROM products ORDER BY sortOrder ASC, id ASC').all()
   res.json(rows.map(mapProduct))
 })
 
@@ -81,7 +85,7 @@ app.get('/api/admin/products', (req, res) => {
   if (auth !== 'Bearer beauty-touch-admin-token') {
     return res.status(401).json({ success: false, error: 'Unauthorized' })
   }
-  const rows = db.prepare('SELECT * FROM products').all()
+  const rows = db.prepare('SELECT * FROM products ORDER BY sortOrder ASC, id ASC').all()
   res.json(rows.map(mapAdminProduct))
 })
 
@@ -96,27 +100,27 @@ app.get('/api/admin/products/:id', (req, res) => {
 })
 
 app.post('/api/products', (req, res) => {
-  const { name, category, subcategory, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive } = req.body
+  const { name, category, subcategory, brand, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive, sortOrder } = req.body
   console.log('POST /api/products - discountedPrice:', discountedPrice)
   const stmt = db.prepare(`
-    INSERT INTO products (name, category, subcategory, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO products (name, category, subcategory, brand, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive, sortOrder)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
   const result = stmt.run(
-    name, category, subcategory || null, price, discountedPrice || null, costPrice || null, image || '', description || '',
-    isBestSeller ? 1 : 0, isNew ? 1 : 0, isActive !== false ? 1 : 0
+    name, category, subcategory || null, brand || null, price, discountedPrice || null, costPrice || null, image || '', description || '',
+    isBestSeller ? 1 : 0, isNew ? 1 : 0, isActive !== false ? 1 : 0, sortOrder || 0
   )
   res.status(201).json({ id: result.lastInsertRowid })
 })
 
 app.put('/api/products/:id', (req, res) => {
-  const { name, category, subcategory, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive } = req.body
+  const { name, category, subcategory, brand, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive, sortOrder } = req.body
   db.prepare(`
-    UPDATE products SET name = ?, category = ?, subcategory = ?, price = ?, discountedPrice = ?, costPrice = ?, image = ?, description = ?, isBestSeller = ?, isNew = ?, isActive = ?
+    UPDATE products SET name = ?, category = ?, subcategory = ?, brand = ?, price = ?, discountedPrice = ?, costPrice = ?, image = ?, description = ?, isBestSeller = ?, isNew = ?, isActive = ?, sortOrder = ?
     WHERE id = ?
   `).run(
-    name, category, subcategory || null, price, discountedPrice || null, costPrice || null, image || '', description || '',
-    isBestSeller ? 1 : 0, isNew ? 1 : 0, isActive !== false ? 1 : 0, req.params.id
+    name, category, subcategory || null, brand || null, price, discountedPrice || null, costPrice || null, image || '', description || '',
+    isBestSeller ? 1 : 0, isNew ? 1 : 0, isActive !== false ? 1 : 0, sortOrder || 0, req.params.id
   )
   res.json({ success: true })
 })
@@ -235,6 +239,74 @@ app.delete('/api/admin/delivery-areas/:id', (req, res) => {
     return res.status(401).json({ success: false, error: 'Unauthorized' })
   }
   db.prepare('DELETE FROM delivery_areas WHERE id = ?').run(req.params.id)
+  res.json({ success: true })
+})
+
+// ─── Brands ───
+app.get('/api/brands', (_req, res) => {
+  const rows = db.prepare('SELECT * FROM brands ORDER BY name ASC').all()
+  res.json(rows)
+})
+
+app.get('/api/brands/:id', (req, res) => {
+  const row = db.prepare('SELECT * FROM brands WHERE id = ?').get(req.params.id)
+  if (!row) return res.status(404).json({ error: 'Brand not found' })
+  res.json(row)
+})
+
+app.post('/api/admin/brands', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const { name } = req.body
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Brand name is required' })
+  }
+  try {
+    const result = db.prepare('INSERT INTO brands (name) VALUES (?)').run(name.trim())
+    res.status(201).json({ id: result.lastInsertRowid, name: name.trim() })
+  } catch (err) {
+    if (err.message && err.message.includes('UNIQUE constraint failed')) {
+      return res.status(409).json({ error: 'Brand name already exists' })
+    }
+    return res.status(500).json({ error: 'Failed to create brand' })
+  }
+})
+
+app.put('/api/admin/brands/:id', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const { name } = req.body
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Brand name is required' })
+  }
+  const brand = db.prepare('SELECT name FROM brands WHERE id = ?').get(req.params.id)
+  if (!brand) return res.status(404).json({ error: 'Brand not found' })
+  const oldName = brand.name
+  try {
+    db.prepare('UPDATE brands SET name = ? WHERE id = ?').run(name.trim(), req.params.id)
+    db.prepare('UPDATE products SET brand = ? WHERE brand = ?').run(name.trim(), oldName)
+    res.json({ success: true })
+  } catch (err) {
+    if (err.message && err.message.includes('UNIQUE constraint failed')) {
+      return res.status(409).json({ error: 'Brand name already exists' })
+    }
+    return res.status(500).json({ error: 'Failed to update brand' })
+  }
+})
+
+app.delete('/api/admin/brands/:id', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const brand = db.prepare('SELECT name FROM brands WHERE id = ?').get(req.params.id)
+  if (!brand) return res.status(404).json({ error: 'Brand not found' })
+  db.prepare('DELETE FROM brands WHERE id = ?').run(req.params.id)
+  db.prepare('UPDATE products SET brand = NULL WHERE brand = ?').run(brand.name)
   res.json({ success: true })
 })
 

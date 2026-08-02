@@ -102,4 +102,25 @@ export const api = {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
     }),
+
+  // Brands
+  getBrands: () => fetchJSON('/brands'),
+  getBrand: (id) => fetchJSON(`/brands/${id}`),
+  createBrand: (name) =>
+    fetchJSON('/admin/brands', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
+  updateBrand: (id, name) =>
+    fetchJSON(`/admin/brands/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name }),
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
+  deleteBrand: (id) =>
+    fetchJSON(`/admin/brands/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
 }

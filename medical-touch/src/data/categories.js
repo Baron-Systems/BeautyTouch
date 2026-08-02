@@ -78,12 +78,6 @@ export const categories = [
     hasSubcategories: false,
   },
   {
-    id: 'brands',
-    name: 'الماركات',
-    slug: 'brands',
-    hasSubcategories: false,
-  },
-  {
     id: 'aftercare',
     name: 'العناية بعد الإجراءات',
     slug: 'aftercare',

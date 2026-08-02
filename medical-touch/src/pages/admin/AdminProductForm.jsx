@@ -14,6 +14,7 @@ export default function AdminProductForm() {
     name: '',
     category: '',
     subcategory: '',
+    brand: '',
     price: '',
     discountedPrice: '',
     costPrice: '',
@@ -22,11 +23,14 @@ export default function AdminProductForm() {
     isBestSeller: false,
     isNew: false,
     isActive: true,
+    sortOrder: 0,
   })
+  const [brands, setBrands] = useState([])
   const [previewImage, setPreviewImage] = useState('')
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
+    storage.getBrands().then(setBrands).catch(() => setBrands([]))
     if (isEdit) {
       storage.getAdminProductById(productId).then((product) => {
         if (product) {
@@ -34,6 +38,7 @@ export default function AdminProductForm() {
             name: product.name || '',
             category: product.category || '',
             subcategory: product.subcategory || '',
+            brand: product.brand || '',
             price: String(product.price) || '',
             discountedPrice: product.discountedPrice ? String(product.discountedPrice) : '',
             costPrice: product.costPrice ? String(product.costPrice) : '',
@@ -42,6 +47,7 @@ export default function AdminProductForm() {
             isBestSeller: product.isBestSeller || false,
             isNew: product.isNew || false,
             isActive: product.isActive !== false,
+            sortOrder: product.sortOrder ?? 0,
           })
           setPreviewImage(product.image || '')
         }
@@ -118,6 +124,7 @@ export default function AdminProductForm() {
       discountedPrice: form.discountedPrice && form.discountedPrice.trim() !== '' ? Number(form.discountedPrice) : null,
       costPrice: form.costPrice && form.costPrice.trim() !== '' ? Number(form.costPrice) : null,
       subcategory: form.subcategory || null,
+      sortOrder: Number(form.sortOrder) || 0,
     }
 
     console.log('Submitting product:', productData)
@@ -227,6 +234,24 @@ export default function AdminProductForm() {
             </div>
           )}
 
+          {/* Brand */}
+          <div>
+            <label className="block text-sm font-medium text-black mb-2">الماركة</label>
+            <select
+              value={form.brand}
+              onChange={(e) => handleChange('brand', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold transition-colors text-sm bg-white"
+              dir="rtl"
+            >
+              <option value="">اختر الماركة</option>
+              {brands.map((brand) => (
+                <option key={brand.id} value={brand.name}>
+                  {brand.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Price */}
           <div>
             <label className="block text-sm font-medium text-black mb-2">السعر (₪) *</label>
@@ -269,6 +294,20 @@ export default function AdminProductForm() {
               min="0"
             />
             <p className="text-xs text-black-light mt-1">لحساب الربح في التقرير، لا يظهر للزبون</p>
+          </div>
+
+          {/* Sort Order */}
+          <div>
+            <label className="block text-sm font-medium text-black mb-2">ترتيب الظهور</label>
+            <input
+              type="number"
+              value={form.sortOrder}
+              onChange={(e) => handleChange('sortOrder', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold transition-colors text-sm"
+              placeholder="مثال: 1"
+              min="0"
+            />
+            <p className="text-xs text-black-light mt-1">أقل رقم يظهر أولاً في القسم (0 افتراضي)</p>
           </div>
 
           {/* Image */}

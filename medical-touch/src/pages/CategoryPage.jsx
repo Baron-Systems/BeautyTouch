@@ -51,7 +51,7 @@ export default function CategoryPage() {
       )
     }
 
-    return result
+    return result.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
   }, [categorySlug, subcategorySlug, products, searchQuery])
 
   const subcategory = subcategorySlug

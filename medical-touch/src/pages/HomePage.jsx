@@ -17,13 +17,10 @@ const promoCategories = [
   { slug: 'face-wash', name: 'غسولات الوجه', icon: ShoppingBag, color: 'from-gold to-gold-dark', desc: 'غسولات منظفة للبشرة' },
 ]
 
-const brands = [
-  'Restylane', 'Allergan', 'Profhilo', 'La Roche-Posay', 'Mesoestetic',
-  'Sculptra', 'PCA Skin', 'SkinCeuticals', 'Juvederm', 'Teoxane',
-]
 
 export default function HomePage() {
   const [products, setProducts] = useState([])
+  const [brands, setBrands] = useState([])
   const [showInstall, setShowInstall] = useState(true)
   const [showManual, setShowManual] = useState(false)
   const [installPrompt, setInstallPrompt] = useState(null)
@@ -39,7 +36,18 @@ export default function HomePage() {
   }, [location.hash])
 
   useEffect(() => {
-    storage.getProducts().then((data) => setProducts(data.filter((p) => p.isActive !== false))).catch(() => setProducts([]))
+    storage.getProducts()
+      .then((data) => {
+        const sorted = data
+          .filter((p) => p.isActive !== false)
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        setProducts(sorted)
+      })
+      .catch(() => setProducts([]))
+
+    storage.getBrands()
+      .then((data) => setBrands(data.sort((a, b) => a.name.localeCompare(b.name, 'ar'))))
+      .catch(() => setBrands([]))
 
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
@@ -276,19 +284,22 @@ export default function HomePage() {
           )}
 
           {/* Brands Carousel */}
-          <section className="max-w-7xl mx-auto px-4 sm:px-6">
-            <h2 className="text-xl font-bold text-black mb-6">الماركات العالمية</h2>
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-              {brands.map((brand) => (
-                <div
-                  key={brand}
-                  className="flex-shrink-0 bg-white rounded-card shadow-card px-6 py-4 flex items-center justify-center min-w-[140px] hover:shadow-card-hover transition-shadow"
-                >
-                  <span className="font-semibold text-black text-sm">{brand}</span>
-                </div>
-              ))}
-            </div>
-          </section>
+          {brands.length > 0 && (
+            <section className="max-w-7xl mx-auto px-4 sm:px-6">
+              <h2 className="text-xl font-bold text-black mb-6">الماركات العالمية</h2>
+              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                {brands.map((brand) => (
+                  <Link
+                    key={brand.id}
+                    to={`/brand/${brand.id}`}
+                    className="flex-shrink-0 bg-white rounded-card shadow-card px-6 py-4 flex items-center justify-center min-w-[140px] hover:shadow-card-hover hover:text-gold transition-all"
+                  >
+                    <span className="font-semibold text-black text-sm">{brand.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Social Media Section */}
           <section className="max-w-7xl mx-auto px-4 sm:px-6">

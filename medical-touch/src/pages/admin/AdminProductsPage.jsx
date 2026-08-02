@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, Pencil, Trash2, LogOut, Package, Power, ClipboardList, Lock, X, Search, Truck, TrendingUp } from 'lucide-react'
+import { Plus, Pencil, Trash2, LogOut, Package, Power, ClipboardList, Lock, X, Search, Truck, TrendingUp, Tag } from 'lucide-react'
 import { storage } from '../../services/storage.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import Logo from '../../components/Logo.jsx'
@@ -92,6 +92,13 @@ export default function AdminProductsPage() {
               >
                 <Truck className="w-4 h-4" />
                 <span>التوصيل</span>
+              </Link>
+              <Link
+                to="/admin/brands"
+                className="flex items-center gap-2 text-sm px-4 py-2 bg-white border border-gray-200 rounded-button hover:border-gold hover:text-gold transition-colors"
+              >
+                <Tag className="w-4 h-4" />
+                <span>الماركات</span>
               </Link>
               <Link
                 to="/admin/profits"

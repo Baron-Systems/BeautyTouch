@@ -16,6 +16,8 @@ import AdminProductForm from './pages/admin/AdminProductForm.jsx'
 import AdminOrdersPage from './pages/admin/AdminOrdersPage.jsx'
 import AdminProfitsPage from './pages/admin/AdminProfitsPage.jsx'
 import AdminDeliveryPage from './pages/admin/AdminDeliveryPage.jsx'
+import AdminBrandsPage from './pages/admin/AdminBrandsPage.jsx'
+import BrandPage from './pages/BrandPage.jsx'
 import MyOrdersPage from './pages/MyOrdersPage.jsx'
 
 function AdminRoute({ children }) {
@@ -84,6 +86,14 @@ function AppContent() {
             </AdminRoute>
           }
         />
+        <Route
+          path="/admin/brands"
+          element={
+            <AdminRoute>
+              <AdminBrandsPage />
+            </AdminRoute>
+          }
+        />
 
         {/* Customer Routes */}
         <Route
@@ -96,6 +106,7 @@ function AppContent() {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/category/:categorySlug" element={<CategoryPage />} />
                   <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />
+                  <Route path="/brand/:brandId" element={<BrandPage />} />
                   <Route path="/product/:productId" element={<ProductDetailPage />} />
                   <Route path="/cart" element={<CartPage />} />
                   <Route path="/wishlist" element={<WishlistPage />} />
