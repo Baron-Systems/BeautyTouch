@@ -70,6 +70,7 @@ else
   done
 
   # Start the server from the project root with absolute path logging
+  export PORT=$PORT
   nohup node "$PWD/server/server.js" > app.log 2>&1 &
   echo "Server started in background (PID: $!)"
 

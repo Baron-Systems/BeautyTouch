@@ -64,5 +64,6 @@ echo ""
 echo "Press Ctrl+C to stop"
 echo ""
 
+export PORT=$PORT
 cd server
 node server.js
