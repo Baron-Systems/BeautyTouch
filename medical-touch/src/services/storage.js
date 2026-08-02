@@ -80,6 +80,13 @@ export const storage = {
       return {}
     }
   },
+  importDatabase: async (base64File) => {
+    try {
+      return await api.importDatabase(base64File)
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  },
   getAdminOrders: async () => {
     try {
       return await api.getAdminOrders()

@@ -58,6 +58,12 @@ export const api = {
   // Admin
   loginAdmin: (password) => fetchJSON('/admin/login', { method: 'POST', body: JSON.stringify({ password }) }),
   checkAdmin: (token) => fetchJSON('/admin/check', { headers: { Authorization: `Bearer ${token}` } }),
+  importDatabase: (base64File) =>
+    fetchJSON('/admin/import', {
+      method: 'POST',
+      body: JSON.stringify({ file: base64File }),
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
   changeAdminPassword: (currentPassword, newPassword) =>
     fetchJSON('/admin/password', {
       method: 'PATCH',

@@ -1,4 +1,6 @@
 import Database from 'better-sqlite3'
+import fs from 'fs'
+import path from 'path'
 
 const seedProducts = [
   { name: 'فيلر شفاه Restylane Kysse', category: 'injections', subcategory: 'filler', price: 450, image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&h=400&fit=crop', description: 'فيلر شفاه فاخر يمنح شفتيك حجماً طبيعياً وجاذبية. يدوم لمدة 12 شهراً.', isBestSeller: true, isNew: false },
@@ -25,140 +27,147 @@ const categories = [
   { id: 'cat-face-wash', slug: 'face-wash', name: 'غسولات الوجه', hasSubcategories: false, subcategories: null },
 ]
 
-const db = new Database('./db.sqlite')
-db.pragma('journal_mode = WAL')
+let db = openDatabase()
 
-// Categories table
-db.exec(`
-  CREATE TABLE IF NOT EXISTS categories (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    slug TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    subcategories TEXT
-  )
-`)
-
-// Products table
-db.exec(`
-  CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    category TEXT NOT NULL,
-    subcategory TEXT,
-    price INTEGER NOT NULL,
-    discountedPrice INTEGER,
-    image TEXT NOT NULL,
-    description TEXT,
-    isBestSeller INTEGER DEFAULT 0,
-    isNew INTEGER DEFAULT 0,
-    isActive INTEGER DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`)
-
-// Orders table
-db.exec(`
-  CREATE TABLE IF NOT EXISTS orders (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_name TEXT NOT NULL,
-    phone TEXT NOT NULL,
-    address TEXT,
-    items TEXT NOT NULL,
-    total INTEGER NOT NULL,
-    status TEXT DEFAULT 'pending',
-    notes TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`)
-
-// Migrate: add isActive if missing
-try {
-  db.prepare('SELECT isActive FROM products LIMIT 1').get()
-} catch {
-  db.exec('ALTER TABLE products ADD COLUMN isActive INTEGER DEFAULT 1')
-  console.log('Migrated: added isActive to products')
+function openDatabase() {
+  const database = new Database('./db.sqlite')
+  database.pragma('journal_mode = WAL')
+  return database
 }
 
-// Migrate: add discountedPrice if missing
-try {
-  db.prepare('SELECT discountedPrice FROM products LIMIT 1').get()
-} catch {
-  db.exec('ALTER TABLE products ADD COLUMN discountedPrice INTEGER')
-  console.log('Migrated: added discountedPrice to products')
-}
+function runMigrations() {
+  // Categories table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      subcategories TEXT
+    )
+  `)
 
-// Migrate: add costPrice if missing
-try {
-  db.prepare('SELECT costPrice FROM products LIMIT 1').get()
-} catch {
-  db.exec('ALTER TABLE products ADD COLUMN costPrice INTEGER')
-  console.log('Migrated: added costPrice to products')
-}
+  // Products table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS products (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      category TEXT NOT NULL,
+      subcategory TEXT,
+      price INTEGER NOT NULL,
+      discountedPrice INTEGER,
+      image TEXT NOT NULL,
+      description TEXT,
+      isBestSeller INTEGER DEFAULT 0,
+      isNew INTEGER DEFAULT 0,
+      isActive INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
 
-// Migrate: add sortOrder if missing
-try {
-  db.prepare('SELECT sortOrder FROM products LIMIT 1').get()
-} catch {
-  db.exec('ALTER TABLE products ADD COLUMN sortOrder INTEGER DEFAULT 0')
-  console.log('Migrated: added sortOrder to products')
-}
+  // Orders table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      customer_name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      address TEXT,
+      items TEXT NOT NULL,
+      total INTEGER NOT NULL,
+      status TEXT DEFAULT 'pending',
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
 
-// Admin table
-db.exec(`
-  CREATE TABLE IF NOT EXISTS admin (
-    id INTEGER PRIMARY KEY,
-    password TEXT NOT NULL
-  )
-`)
+  // Migrate: add isActive if missing
+  try {
+    db.prepare('SELECT isActive FROM products LIMIT 1').get()
+  } catch {
+    db.exec('ALTER TABLE products ADD COLUMN isActive INTEGER DEFAULT 1')
+    console.log('Migrated: added isActive to products')
+  }
 
-// Settings table
-db.exec(`
-  CREATE TABLE IF NOT EXISTS settings (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-  )
-`)
+  // Migrate: add discountedPrice if missing
+  try {
+    db.prepare('SELECT discountedPrice FROM products LIMIT 1').get()
+  } catch {
+    db.exec('ALTER TABLE products ADD COLUMN discountedPrice INTEGER')
+    console.log('Migrated: added discountedPrice to products')
+  }
 
-// Delivery areas table
-db.exec(`
-  CREATE TABLE IF NOT EXISTS delivery_areas (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    price INTEGER NOT NULL DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`)
+  // Migrate: add costPrice if missing
+  try {
+    db.prepare('SELECT costPrice FROM products LIMIT 1').get()
+  } catch {
+    db.exec('ALTER TABLE products ADD COLUMN costPrice INTEGER')
+    console.log('Migrated: added costPrice to products')
+  }
 
-// Brands table
-db.exec(`
-  CREATE TABLE IF NOT EXISTS brands (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`)
+  // Migrate: add sortOrder if missing
+  try {
+    db.prepare('SELECT sortOrder FROM products LIMIT 1').get()
+  } catch {
+    db.exec('ALTER TABLE products ADD COLUMN sortOrder INTEGER DEFAULT 0')
+    console.log('Migrated: added sortOrder to products')
+  }
 
-// Migrate: add brand if missing
-try {
-  db.prepare('SELECT brand FROM products LIMIT 1').get()
-} catch {
-  db.exec('ALTER TABLE products ADD COLUMN brand TEXT')
-  console.log('Migrated: added brand to products')
-}
+  // Admin table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS admin (
+      id INTEGER PRIMARY KEY,
+      password TEXT NOT NULL
+    )
+  `)
 
-// Migrate: add delivery_area and delivery_price to orders if missing
-try {
-  db.prepare('SELECT delivery_area FROM orders LIMIT 1').get()
-} catch {
-  db.exec('ALTER TABLE orders ADD COLUMN delivery_area TEXT')
-  console.log('Migrated: added delivery_area to orders')
-}
+  // Settings table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )
+  `)
 
-try {
-  db.prepare('SELECT delivery_price FROM orders LIMIT 1').get()
-} catch {
-  db.exec('ALTER TABLE orders ADD COLUMN delivery_price INTEGER DEFAULT 0')
-  console.log('Migrated: added delivery_price to orders')
+  // Delivery areas table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS delivery_areas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      price INTEGER NOT NULL DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
+
+  // Brands table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS brands (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
+
+  // Migrate: add brand if missing
+  try {
+    db.prepare('SELECT brand FROM products LIMIT 1').get()
+  } catch {
+    db.exec('ALTER TABLE products ADD COLUMN brand TEXT')
+    console.log('Migrated: added brand to products')
+  }
+
+  // Migrate: add delivery_area and delivery_price to orders if missing
+  try {
+    db.prepare('SELECT delivery_area FROM orders LIMIT 1').get()
+  } catch {
+    db.exec('ALTER TABLE orders ADD COLUMN delivery_area TEXT')
+    console.log('Migrated: added delivery_area to orders')
+  }
+
+  try {
+    db.prepare('SELECT delivery_price FROM orders LIMIT 1').get()
+  } catch {
+    db.exec('ALTER TABLE orders ADD COLUMN delivery_price INTEGER DEFAULT 0')
+    console.log('Migrated: added delivery_price to orders')
+  }
 }
 
 function seedIfEmpty() {
@@ -223,6 +232,23 @@ function seedIfEmpty() {
   })
 }
 
+function reopenDatabase() {
+  try {
+    db.close()
+  } catch (err) {
+    console.error('Error closing database:', err.message)
+  }
+  // Remove WAL files so the new db file doesn't pick up stale WAL data
+  const walPath = path.resolve('./db.sqlite-wal')
+  const shmPath = path.resolve('./db.sqlite-shm')
+  try { fs.unlinkSync(walPath) } catch {}
+  try { fs.unlinkSync(shmPath) } catch {}
+  db = openDatabase()
+  runMigrations()
+  seedIfEmpty()
+}
+
+runMigrations()
 seedIfEmpty()
 
-export { db }
+export { db, reopenDatabase }

@@ -1,8 +1,9 @@
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
+import fs from 'fs'
 import { fileURLToPath } from 'url'
-import { db } from './database.js'
+import { db, reopenDatabase } from './database.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -198,6 +199,32 @@ app.get('/api/admin/export', (_req, res) => {
   res.sendFile(dbPath, { root: process.cwd() }, (err) => {
     if (err) res.status(500).json({ error: 'Export failed' })
   })
+})
+
+app.post('/api/admin/import', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const { file } = req.body
+  if (!file || typeof file !== 'string') {
+    return res.status(400).json({ error: 'No file provided' })
+  }
+  try {
+    const buffer = Buffer.from(file, 'base64')
+    const dbPath = path.resolve('db.sqlite')
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const backupPath = `${dbPath}.backup.${timestamp}`
+    fs.copyFileSync(dbPath, backupPath)
+    const tempPath = `${dbPath}.tmp`
+    fs.writeFileSync(tempPath, buffer)
+    fs.renameSync(tempPath, dbPath)
+    reopenDatabase()
+    res.json({ success: true, backup: backupPath })
+  } catch (err) {
+    console.error('Import failed:', err)
+    res.status(500).json({ error: 'Import failed: ' + err.message })
+  }
 })
 
 // ─── Delivery Areas ───

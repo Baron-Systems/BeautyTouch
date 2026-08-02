@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ClipboardList, Package, CheckCircle, Truck, XCircle, Clock, ArrowLeft, Power, Eye, X, MapPin, Phone, User, Calendar, Download, LogOut, Lock, FileText, Save, Pencil, CheckCircle2, AlertCircle, Search, TrendingUp } from 'lucide-react'
+import { ClipboardList, Package, CheckCircle, Truck, XCircle, Clock, ArrowLeft, Power, Eye, X, MapPin, Phone, User, Calendar, Download, Upload, LogOut, Lock, FileText, Save, Pencil, CheckCircle2, AlertCircle, Search, TrendingUp } from 'lucide-react'
 import { storage } from '../../services/storage.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import Logo from '../../components/Logo.jsx'
@@ -36,6 +36,10 @@ export default function AdminOrdersPage() {
   const [editingNote, setEditingNote] = useState(true)
   const [savingNote, setSavingNote] = useState(false)
   const [noteMessage, setNoteMessage] = useState({ type: '', text: '' })
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [importFile, setImportFile] = useState(null)
+  const [importing, setImporting] = useState(false)
+  const [importMessage, setImportMessage] = useState({ type: '', text: '' })
 
   useEffect(() => {
     loadData()
@@ -120,6 +124,45 @@ export default function AdminOrdersPage() {
 
   const filtered = filter === 'all' ? orders : orders.filter((o) => o.status === filter)
 
+  const handleImportFileChange = (e) => {
+    const file = e.target.files[0]
+    if (file && file.name.endsWith('.db')) {
+      setImportFile(file)
+      setImportMessage({ type: '', text: '' })
+    } else {
+      setImportFile(null)
+      setImportMessage({ type: 'error', text: 'يرجى اختيار ملف .db فقط' })
+    }
+  }
+
+  const handleImport = async () => {
+    if (!importFile) {
+      setImportMessage({ type: 'error', text: 'يرجى اختيار ملف النسخة الاحتياطية' })
+      return
+    }
+    setImporting(true)
+    setImportMessage({ type: '', text: '' })
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+      const base64 = e.target.result.split(',')[1]
+      const res = await storage.importDatabase(base64)
+      setImporting(false)
+      if (res.success) {
+        setImportMessage({ type: 'success', text: 'تم استرجاع قاعدة البيانات بنجاح' })
+        setImportFile(null)
+        loadData()
+        setTimeout(() => setShowImportModal(false), 1500)
+      } else {
+        setImportMessage({ type: 'error', text: res.error || 'فشل الاسترجاع' })
+      }
+    }
+    reader.onerror = () => {
+      setImporting(false)
+      setImportMessage({ type: 'error', text: 'فشل قراءة الملف' })
+    }
+    reader.readAsDataURL(importFile)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
@@ -155,6 +198,18 @@ export default function AdminOrdersPage() {
                 <Download className="w-4 h-4" />
                 <span>تحميل DB</span>
               </a>
+              <button
+                onClick={() => {
+                  setShowImportModal(true)
+                  setImportMessage({ type: '', text: '' })
+                  setImportFile(null)
+                }}
+                className="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
+                title="استرجاع نسخة من قاعدة البيانات"
+              >
+                <Upload className="w-4 h-4" />
+                <span>استرجاع DB</span>
+              </button>
               <button
                 onClick={() => setShowPasswordModal(true)}
                 className="p-2 text-black-light hover:text-gold transition-colors"
@@ -418,6 +473,71 @@ export default function AdminOrdersPage() {
                   className="btn-gold px-5 py-2.5 text-sm disabled:opacity-50"
                 >
                   {changingPassword ? 'جاري الحفظ...' : 'حفظ'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Import Database Modal */}
+        {showImportModal && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setShowImportModal(false)} />
+            <div className="relative bg-white rounded-card shadow-xl w-full max-w-md">
+              <div className="flex items-center justify-between p-5 border-b border-gray-100">
+                <h2 className="text-lg font-bold text-black">استرجاع قاعدة البيانات</h2>
+                <button
+                  onClick={() => setShowImportModal(false)}
+                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <X className="w-5 h-5 text-black-light" />
+                </button>
+              </div>
+              <div className="p-5 space-y-4">
+                <p className="text-sm text-black-light">
+                  اختر ملف النسخة الاحتياطية (.db). سيتم حفظ نسخة احتياطية من قاعدة البيانات الحالية تلقائيًا قبل الاسترجاع.
+                </p>
+                <input
+                  type="file"
+                  accept=".db"
+                  onChange={handleImportFileChange}
+                  className="block w-full text-sm text-black-light file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
+                />
+                {importFile && (
+                  <p className="text-sm text-green-600 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    {importFile.name}
+                  </p>
+                )}
+                {importMessage.text && (
+                  <div className={`rounded-lg p-3 text-sm text-center ${importMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                    {importMessage.text}
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center justify-end gap-2 p-5 border-t border-gray-100">
+                <button
+                  onClick={() => setShowImportModal(false)}
+                  className="px-5 py-2.5 text-sm font-medium text-black-light hover:text-black transition-colors"
+                >
+                  إلغاء
+                </button>
+                <button
+                  onClick={handleImport}
+                  disabled={importing || !importFile}
+                  className="btn-gold px-5 py-2.5 text-sm disabled:opacity-50 flex items-center gap-2"
+                >
+                  {importing ? (
+                    <>
+                      <Clock className="w-4 h-4 animate-spin" />
+                      جاري الاسترجاع...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      استرجاع
+                    </>
+                  )}
                 </button>
               </div>
             </div>
