@@ -15,6 +15,7 @@ export default function AdminProductsPage() {
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedImage, setSelectedImage] = useState(null)
 
   useEffect(() => {
     storage.getAdminProducts().then(setProducts).catch(() => setProducts([]))
@@ -168,6 +169,7 @@ export default function AdminProductsPage() {
                     <th className="text-right px-6 py-4 text-sm font-semibold text-black">المنتج</th>
                     <th className="text-right px-6 py-4 text-sm font-semibold text-black">التصنيف</th>
                     <th className="text-right px-6 py-4 text-sm font-semibold text-black">السعر</th>
+                    <th className="text-right px-6 py-4 text-sm font-semibold text-black">سعر التكلفة</th>
                     <th className="text-right px-6 py-4 text-sm font-semibold text-black">الحالة</th>
                     <th className="text-right px-6 py-4 text-sm font-semibold text-black">الإجراءات</th>
                   </tr>
@@ -178,11 +180,18 @@ export default function AdminProductsPage() {
                     .map((product) => (
                     <tr key={product.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-12 h-12 object-cover rounded-lg"
-                        />
+                        <button
+                          type="button"
+                          onClick={() => setSelectedImage(product.image)}
+                          className="block p-0 border-0 bg-transparent cursor-pointer"
+                          aria-label="عرض الصورة"
+                        >
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded-lg hover:opacity-90 transition-opacity"
+                          />
+                        </button>
                       </td>
                       <td className="px-6 py-4">
                         <p className="font-medium text-black text-sm">{product.name}</p>
@@ -195,6 +204,9 @@ export default function AdminProductsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="font-bold text-gold text-sm">{product.price} ₪</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-black-light">{product.costPrice ? `${product.costPrice} ₪` : '—'}</span>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`text-xs font-medium px-2 py-1 rounded-full ${
@@ -316,6 +328,31 @@ export default function AdminProductsPage() {
           </div>
         )}
       </div>
+
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="absolute inset-0 bg-black/80" />
+          <button
+            type="button"
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 left-4 z-10 p-2 text-white hover:text-gold transition-colors"
+            aria-label="إغلاق"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img
+            src={selectedImage}
+            alt="صورة المنتج"
+            className="relative max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   )
 }
