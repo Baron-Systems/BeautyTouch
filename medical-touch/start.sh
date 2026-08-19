@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Beauty Touch - Self-Contained Build & Start Script
+# MH beauty - Self-Contained Build & Start Script
 # Usage: chmod +x start.sh && ./start.sh
 
 set -e
@@ -14,7 +14,7 @@ fi
 PORT=4356
 
 echo "========================================"
-echo "    Beauty Touch - Build & Start"
+echo "    MH beauty - Build & Start"
 echo "========================================"
 echo ""
 

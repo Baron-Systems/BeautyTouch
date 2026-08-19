@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Beauty Touch - Auto Deploy Update Script
+# MH beauty - Auto Deploy Update Script
 # Usage: chmod +x update.sh && ./update.sh
 
 set -e
@@ -12,7 +12,7 @@ cd "$(dirname "$0")"
 PORT=4356
 
 echo "========================================"
-echo "    Beauty Touch - Auto Deploy"
+echo "    MH beauty - Auto Deploy"
 echo "========================================"
 echo ""
 
@@ -51,7 +51,7 @@ echo ""
 # Restart with pm2 if available, otherwise kill node and start fresh
 if command -v pm2 &> /dev/null; then
   echo "Restarting with pm2..."
-  pm2 restart beauty-touch 2>/dev/null || pm2 start server/server.js --name beauty-touch
+  pm2 restart mh-beauty 2>/dev/null || pm2 start server/server.js --name mh-beauty
   pm2 save
   echo "App restarted with pm2"
 else

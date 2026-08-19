@@ -1,4 +1,4 @@
-# Beauty Touch — Deployment Guide
+# MH beauty — Deployment Guide
 
 ## Quick Start (Linux Server)
 

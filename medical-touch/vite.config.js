@@ -8,9 +8,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Beauty Touch',
-        short_name: 'Beauty Touch',
-        description: 'Beauty Touch - Premium Medical Beauty Store',
+        name: 'MH beauty',
+        short_name: 'MH beauty',
+        description: 'MH beauty - Premium Medical Beauty Store',
         theme_color: '#FFFFFF',
         background_color: '#FFFFFF',
         display: 'standalone',
@@ -19,15 +19,9 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/icon-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any'
-          },
-          {
-            src: '/icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
+            src: '/icon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
             purpose: 'any'
           }
         ]

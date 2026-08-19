@@ -1,11 +1,11 @@
 @echo off
 chcp 65001 >nul
 
-:: Beauty Touch - Build & Start Script (Windows)
+:: MH beauty - Build & Start Script (Windows)
 :: Usage: double-click or run: start.bat
 
 echo ========================================
-echo     Beauty Touch - Build & Start
+echo     MH beauty - Build & Start
 echo ========================================
 echo.
 

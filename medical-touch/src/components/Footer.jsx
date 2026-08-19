@@ -12,7 +12,7 @@ export default function Footer() {
           <div className="space-y-4">
             <Logo size="small" />
             <p className="text-sm text-black-light leading-relaxed">
-              Beauty Touch — وجهتك الأولى للمنتجات التجميلية الطبية الفاخرة. نقدم لك أجود المنتجات العالمية بأعلى معايير الجودة.
+              MH beauty — وجهتك الأولى للمنتجات التجميلية الطبية الفاخرة. نقدم لك أجود المنتجات العالمية بأعلى معايير الجودة.
             </p>
           </div>
 
@@ -63,7 +63,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-100 mt-8 pt-8 text-center">
           <p className="text-xs text-black-light">
-            &copy; {new Date().getFullYear()} Beauty Touch. جميع الحقوق محفوظة.
+            &copy; {new Date().getFullYear()} MH beauty. جميع الحقوق محفوظة.
           </p>
         </div>
       </div>

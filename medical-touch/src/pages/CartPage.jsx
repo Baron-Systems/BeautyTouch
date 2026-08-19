@@ -12,7 +12,7 @@ function generateWhatsAppMessage(cartItems, subtotal, deliveryPrice, total, prod
   }).filter(Boolean)
 
   const message = [
-    'مرحباً Beauty Touch',
+    'مرحباً MH beauty',
     '',
     'أرغب بطلب المنتجات التالية:',
     '',

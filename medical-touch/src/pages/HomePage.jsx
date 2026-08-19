@@ -172,7 +172,7 @@ export default function HomePage() {
                     <span>تجربة تسوق فاخرة</span>
                   </div>
                   <h1 className="text-3xl md:text-5xl font-bold text-black leading-tight">
-                    Beauty Touch
+                    MH beauty
                   </h1>
                   <h2 className="text-xl md:text-2xl font-semibold text-gold mt-2">
                     لأنك تستحق الأفضل
@@ -188,7 +188,7 @@ export default function HomePage() {
                   <div className="aspect-square max-w-md mx-auto rounded-card overflow-hidden shadow-gold">
                     <img
                       src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&h=800&fit=crop"
-                      alt="Beauty Touch Products"
+                      alt="MH beauty Products"
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -321,7 +321,7 @@ export default function HomePage() {
                   <span>YouTube</span>
                 </a>
                 <a
-                  href="https://www.instagram.com/beauty.touch.ps?utm_source=qr&igsh=bDZjemZ0Y3VyeGlr"
+                  href="https://www.instagram.com/beauty_touch729?igsh=MW4zeTZmOHdlY2c5dg=="
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-pink-50 text-pink-600 hover:bg-pink-100 transition-colors text-sm font-medium"
@@ -343,7 +343,7 @@ export default function HomePage() {
                   <span>Snapchat</span>
                 </a>
                 <a
-                  href="https://www.tiktok.com/@beauty.touch.ps?_r=1&_t=ZS-97xxPI2xPeu"
+                  href="https://www.tiktok.com/@beauty_touch729"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white hover:bg-gray-800 transition-colors text-sm font-medium"
@@ -354,7 +354,7 @@ export default function HomePage() {
                   <span>TikTok</span>
                 </a>
                 <a
-                  href="https://www.facebook.com/share/1HKdSBgf3S/"
+                  href="https://www.facebook.com/share/18yLkJgtFU/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors text-sm font-medium"
@@ -397,7 +397,7 @@ export default function HomePage() {
               <Download className="w-5 h-5 text-gold" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-black">تطبيق Beauty Touch</p>
+              <p className="text-sm font-semibold text-black">تطبيق MH beauty</p>
               <p className="text-xs text-black-light">
                 {isChrome && installPrompt
                   ? 'اضغط تحميل للتثبيت مباشرة'
