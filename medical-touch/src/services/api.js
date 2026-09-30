@@ -21,6 +21,17 @@ export const api = {
   // Categories
   getCategories: () => fetchJSON('/categories'),
   getCategory: (slug) => fetchJSON(`/categories/${slug}`),
+  updateCategory: (id, data) =>
+    fetchJSON(`/admin/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
+  toggleCategory: (id) =>
+    fetchJSON(`/admin/categories/${id}/toggle`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
 
   // Products
   getProducts: () => fetchJSON('/products'),
@@ -47,6 +58,24 @@ export const api = {
     }),
   deleteProduct: (id) => fetchJSON(`/products/${id}`, { method: 'DELETE' }),
   toggleProduct: (id) => fetchJSON(`/products/${id}/toggle`, { method: 'PATCH' }),
+  reorderCategories: (ids) =>
+    fetchJSON('/admin/reorder/categories', {
+      method: 'POST',
+      body: JSON.stringify({ ids }),
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
+  reorderProducts: (ids) =>
+    fetchJSON('/admin/reorder/products', {
+      method: 'POST',
+      body: JSON.stringify({ ids }),
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
+  moveProduct: (productId, category, subcategory, sortOrder) =>
+    fetchJSON('/admin/move-product', {
+      method: 'POST',
+      body: JSON.stringify({ productId, category, subcategory, sortOrder }),
+      headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
+    }),
 
   // Orders
   createOrder: (order) => fetchJSON('/orders', { method: 'POST', body: JSON.stringify(order) }),
@@ -122,16 +151,16 @@ export const api = {
   // Brands
   getBrands: () => fetchJSON('/brands'),
   getBrand: (id) => fetchJSON(`/brands/${id}`),
-  createBrand: (name) =>
+  createBrand: (data) =>
     fetchJSON('/admin/brands', {
       method: 'POST',
-      body: JSON.stringify({ name }),
+      body: JSON.stringify(data),
       headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
     }),
-  updateBrand: (id, name) =>
+  updateBrand: (id, data) =>
     fetchJSON(`/admin/brands/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ name }),
+      body: JSON.stringify(data),
       headers: { Authorization: `Bearer ${localStorage.getItem('medical_touch_auth_token')}` },
     }),
   deleteBrand: (id) =>

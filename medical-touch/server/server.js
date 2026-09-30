@@ -56,17 +56,82 @@ function mapAdminProduct(p) {
 
 // ─── Categories ───
 app.get('/api/categories', (_req, res) => {
-  const rows = db.prepare('SELECT * FROM categories').all()
+  const rows = db.prepare('SELECT * FROM categories ORDER BY sortOrder ASC, id ASC').all()
   res.json(rows.map(c => ({
     ...c,
-    subcategories: c.subcategories ? JSON.parse(c.subcategories) : null
+    subcategories: c.subcategories ? JSON.parse(c.subcategories) : null,
+    isActive: c.isActive !== 0,
   })))
 })
 
 app.get('/api/categories/:slug', (req, res) => {
   const row = db.prepare('SELECT * FROM categories WHERE slug = ?').get(req.params.slug)
   if (!row) return res.status(404).json({ error: 'Category not found' })
-  res.json({ ...row, subcategories: row.subcategories ? JSON.parse(row.subcategories) : null })
+  res.json({ ...row, subcategories: row.subcategories ? JSON.parse(row.subcategories) : null, isActive: row.isActive !== 0 })
+})
+
+app.put('/api/admin/categories/:id', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const { name, slug, subcategories, sortOrder, isActive } = req.body
+  db.prepare('UPDATE categories SET name = ?, slug = ?, subcategories = ?, sortOrder = ?, isActive = ? WHERE id = ?')
+    .run(name, slug, subcategories || null, sortOrder ?? 0, isActive !== false ? 1 : 0, req.params.id)
+  res.json({ success: true })
+})
+
+app.patch('/api/admin/categories/:id/toggle', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const row = db.prepare('SELECT isActive FROM categories WHERE id = ?').get(req.params.id)
+  if (!row) return res.status(404).json({ error: 'Category not found' })
+  const newVal = row.isActive ? 0 : 1
+  db.prepare('UPDATE categories SET isActive = ? WHERE id = ?').run(newVal, req.params.id)
+  res.json({ isActive: newVal === 1 })
+})
+
+// ─── Admin: Reorder ───
+app.post('/api/admin/reorder/categories', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const { ids } = req.body
+  if (!Array.isArray(ids)) return res.status(400).json({ error: 'ids array required' })
+  const update = db.prepare('UPDATE categories SET sortOrder = ? WHERE id = ?')
+  db.transaction(() => {
+    ids.forEach((id, index) => update.run(index, id))
+  })()
+  res.json({ success: true })
+})
+
+app.post('/api/admin/reorder/products', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const { ids } = req.body
+  if (!Array.isArray(ids)) return res.status(400).json({ error: 'ids array required' })
+  const update = db.prepare('UPDATE products SET sortOrder = ? WHERE id = ?')
+  db.transaction(() => {
+    ids.forEach((id, index) => update.run(index, id))
+  })()
+  res.json({ success: true })
+})
+
+app.post('/api/admin/move-product', (req, res) => {
+  const auth = req.headers.authorization
+  if (auth !== 'Bearer beauty-touch-admin-token') {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+  const { productId, category, subcategory, sortOrder } = req.body
+  if (!productId || !category) return res.status(400).json({ error: 'productId and category required' })
+  db.prepare('UPDATE products SET category = ?, subcategory = ?, sortOrder = ? WHERE id = ?')
+    .run(category, subcategory || null, sortOrder ?? 0, productId)
+  res.json({ success: true })
 })
 
 // ─── Products ───
@@ -101,27 +166,37 @@ app.get('/api/admin/products/:id', (req, res) => {
 })
 
 app.post('/api/products', (req, res) => {
-  const { name, category, subcategory, brand, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive, sortOrder } = req.body
+  const { name, category, subcategory, brand, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive } = req.body
   console.log('POST /api/products - discountedPrice:', discountedPrice)
+  // Auto-calculate sortOrder: max in same category + 1
+  const maxRow = db.prepare('SELECT COALESCE(MAX(sortOrder), -1) as maxSort FROM products WHERE category = ?').get(category)
+  const newSortOrder = (maxRow?.maxSort ?? -1) + 1
   const stmt = db.prepare(`
     INSERT INTO products (name, category, subcategory, brand, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive, sortOrder)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
   const result = stmt.run(
     name, category, subcategory || null, brand || null, price, discountedPrice || null, costPrice || null, image || '', description || '',
-    isBestSeller ? 1 : 0, isNew ? 1 : 0, isActive !== false ? 1 : 0, sortOrder || 0
+    isBestSeller ? 1 : 0, isNew ? 1 : 0, isActive !== false ? 1 : 0, newSortOrder
   )
   res.status(201).json({ id: result.lastInsertRowid })
 })
 
 app.put('/api/products/:id', (req, res) => {
-  const { name, category, subcategory, brand, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive, sortOrder } = req.body
+  const { name, category, subcategory, brand, price, discountedPrice, costPrice, image, description, isBestSeller, isNew, isActive } = req.body
+  // If category changed, auto-assign sortOrder = max in new category + 1
+  const current = db.prepare('SELECT category, sortOrder FROM products WHERE id = ?').get(req.params.id)
+  let newSortOrder = current?.sortOrder ?? 0
+  if (current && category !== current.category) {
+    const maxRow = db.prepare('SELECT COALESCE(MAX(sortOrder), -1) as maxSort FROM products WHERE category = ?').get(category)
+    newSortOrder = (maxRow?.maxSort ?? -1) + 1
+  }
   db.prepare(`
     UPDATE products SET name = ?, category = ?, subcategory = ?, brand = ?, price = ?, discountedPrice = ?, costPrice = ?, image = ?, description = ?, isBestSeller = ?, isNew = ?, isActive = ?, sortOrder = ?
     WHERE id = ?
   `).run(
     name, category, subcategory || null, brand || null, price, discountedPrice || null, costPrice || null, image || '', description || '',
-    isBestSeller ? 1 : 0, isNew ? 1 : 0, isActive !== false ? 1 : 0, sortOrder || 0, req.params.id
+    isBestSeller ? 1 : 0, isNew ? 1 : 0, isActive !== false ? 1 : 0, newSortOrder, req.params.id
   )
   res.json({ success: true })
 })
@@ -285,13 +360,13 @@ app.post('/api/admin/brands', (req, res) => {
   if (auth !== 'Bearer beauty-touch-admin-token') {
     return res.status(401).json({ success: false, error: 'Unauthorized' })
   }
-  const { name } = req.body
+  const { name, logo } = req.body
   if (!name || !name.trim()) {
     return res.status(400).json({ error: 'Brand name is required' })
   }
   try {
-    const result = db.prepare('INSERT INTO brands (name) VALUES (?)').run(name.trim())
-    res.status(201).json({ id: result.lastInsertRowid, name: name.trim() })
+    const result = db.prepare('INSERT INTO brands (name, logo) VALUES (?, ?)').run(name.trim(), logo || null)
+    res.status(201).json({ id: result.lastInsertRowid, name: name.trim(), logo: logo || null })
   } catch (err) {
     if (err.message && err.message.includes('UNIQUE constraint failed')) {
       return res.status(409).json({ error: 'Brand name already exists' })
@@ -305,15 +380,16 @@ app.put('/api/admin/brands/:id', (req, res) => {
   if (auth !== 'Bearer beauty-touch-admin-token') {
     return res.status(401).json({ success: false, error: 'Unauthorized' })
   }
-  const { name } = req.body
+  const { name, logo } = req.body
   if (!name || !name.trim()) {
     return res.status(400).json({ error: 'Brand name is required' })
   }
-  const brand = db.prepare('SELECT name FROM brands WHERE id = ?').get(req.params.id)
+  const brand = db.prepare('SELECT name, logo FROM brands WHERE id = ?').get(req.params.id)
   if (!brand) return res.status(404).json({ error: 'Brand not found' })
   const oldName = brand.name
+  const newLogo = 'logo' in req.body ? (logo || null) : brand.logo
   try {
-    db.prepare('UPDATE brands SET name = ? WHERE id = ?').run(name.trim(), req.params.id)
+    db.prepare('UPDATE brands SET name = ?, logo = ? WHERE id = ?').run(name.trim(), newLogo, req.params.id)
     db.prepare('UPDATE products SET brand = ? WHERE brand = ?').run(name.trim(), oldName)
     res.json({ success: true })
   } catch (err) {

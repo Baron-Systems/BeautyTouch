@@ -46,6 +46,41 @@ export const storage = {
   toggleProduct: async (id) => {
     return await api.toggleProduct(id)
   },
+  reorderCategories: async (ids) => {
+    try {
+      return await api.reorderCategories(ids)
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  },
+  reorderProducts: async (ids) => {
+    try {
+      return await api.reorderProducts(ids)
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  },
+  moveProduct: async (productId, category, subcategory, sortOrder) => {
+    try {
+      return await api.moveProduct(productId, category, subcategory, sortOrder)
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  },
+  updateCategory: async (id, data) => {
+    try {
+      return await api.updateCategory(id, data)
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  },
+  toggleCategory: async (id) => {
+    try {
+      return await api.toggleCategory(id)
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  },
 
   // Orders (API)
   createOrder: async (order) => {
@@ -126,16 +161,16 @@ export const storage = {
       return null
     }
   },
-  createBrand: async (name) => {
+  createBrand: async (data) => {
     try {
-      return await api.createBrand(name)
+      return await api.createBrand(data)
     } catch (err) {
       return { success: false, error: err.message }
     }
   },
-  updateBrand: async (id, name) => {
+  updateBrand: async (id, data) => {
     try {
-      return await api.updateBrand(id, name)
+      return await api.updateBrand(id, data)
     } catch (err) {
       return { success: false, error: err.message }
     }

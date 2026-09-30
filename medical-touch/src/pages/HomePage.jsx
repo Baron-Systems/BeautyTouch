@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ChevronLeft, Sparkles, ShoppingBag, MessageCircle, TrendingUp, Star, Zap, Download, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles, ShoppingBag, MessageCircle, TrendingUp, Star, Zap, Download, X } from 'lucide-react'
 import ProductCard from '../components/ProductCard.jsx'
-import { categories } from '../data/categories.js'
+import { categories as staticCategories } from '../data/categories.js'
 import { storage } from '../services/storage.js'
 
 const promoCategories = [
@@ -20,13 +20,14 @@ const promoCategories = [
 
 export default function HomePage() {
   const [products, setProducts] = useState([])
+  const [categories, setCategories] = useState([])
   const [brands, setBrands] = useState([])
   const [showInstall, setShowInstall] = useState(true)
   const [showManual, setShowManual] = useState(false)
   const [installPrompt, setInstallPrompt] = useState(null)
   const [isInstalled, setIsInstalled] = useState(false)
   const location = useLocation()
-  
+
   // Parse search query from hash URL
   const searchQuery = useMemo(() => {
     const hash = location.hash
@@ -44,6 +45,13 @@ export default function HomePage() {
         setProducts(sorted)
       })
       .catch(() => setProducts([]))
+
+    storage.getCategories()
+      .then((data) => {
+        const sorted = data.filter((c) => c.isActive !== false).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        setCategories(sorted)
+      })
+      .catch(() => setCategories(staticCategories.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))))
 
     storage.getBrands()
       .then((data) => setBrands(data.sort((a, b) => a.name.localeCompare(b.name, 'ar'))))
@@ -83,6 +91,63 @@ export default function HomePage() {
       window.removeEventListener('appinstalled', handleAppInstalled)
     }
   }, [])
+
+  const brandContainerRef = useRef(null)
+  const isDragging = useRef(false)
+  const startX = useRef(0)
+  const scrollStart = useRef(0)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const checkScrollability = useCallback(() => {
+    const el = brandContainerRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 0)
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1)
+  }, [])
+
+  const scrollByDirection = useCallback((direction) => {
+    const el = brandContainerRef.current
+    if (!el) return
+    const itemWidth = window.innerWidth >= 1024 ? 180 : window.innerWidth >= 640 ? 160 : 140
+    const gap = window.innerWidth >= 640 ? 24 : 16
+    const step = Math.ceil((itemWidth + gap) * 3)
+    el.scrollBy({ left: direction === 'left' ? -step : step, behavior: 'smooth' })
+  }, [])
+
+  // Drag / swipe handlers
+  const onPointerDown = useCallback((e) => {
+    isDragging.current = true
+    startX.current = e.clientX || e.touches?.[0]?.clientX || 0
+    const el = brandContainerRef.current
+    if (el) scrollStart.current = el.scrollLeft
+  }, [])
+
+  const onPointerMove = useCallback((e) => {
+    if (!isDragging.current) return
+    const x = e.clientX || e.touches?.[0]?.clientX || 0
+    const walk = startX.current - x
+    const el = brandContainerRef.current
+    if (el) el.scrollLeft = scrollStart.current + walk
+  }, [])
+
+  const onPointerUp = useCallback(() => {
+    isDragging.current = false
+    checkScrollability()
+  }, [checkScrollability])
+
+  useEffect(() => {
+    const el = brandContainerRef.current
+    if (!el) return
+    const handleScroll = () => checkScrollability()
+    el.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', checkScrollability)
+    checkScrollability()
+    return () => {
+      el.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', checkScrollability)
+    }
+  }, [brands, checkScrollability])
 
   const handleInstall = async () => {
     const promptEvent = installPrompt || window.deferredInstallPrompt
@@ -286,17 +351,61 @@ export default function HomePage() {
           {/* Brands Carousel */}
           {brands.length > 0 && (
             <section className="max-w-7xl mx-auto px-4 sm:px-6">
-              <h2 className="text-xl font-bold text-black mb-6">الماركات العالمية</h2>
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                {brands.map((brand) => (
-                  <Link
-                    key={brand.id}
-                    to={`/brand/${brand.id}`}
-                    className="flex-shrink-0 bg-white rounded-card shadow-card px-6 py-4 flex items-center justify-center min-w-[140px] hover:shadow-card-hover hover:text-gold transition-all"
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-black">الماركات العالمية</h2>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => scrollByDirection('left')}
+                    disabled={!canScrollLeft}
+                    className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-black-light hover:text-gold hover:border-gold transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    aria-label="السابق"
                   >
-                    <span className="font-semibold text-black text-sm">{brand.name}</span>
-                  </Link>
-                ))}
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => scrollByDirection('right')}
+                    disabled={!canScrollRight}
+                    className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-black-light hover:text-gold hover:border-gold transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    aria-label="التالي"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              <div className="relative">
+                <div
+                  ref={brandContainerRef}
+                  className="logo-track overflow-x-auto py-2 scrollbar-hide"
+                  onMouseDown={onPointerDown}
+                  onMouseMove={onPointerMove}
+                  onMouseUp={onPointerUp}
+                  onMouseLeave={onPointerUp}
+                  onTouchStart={onPointerDown}
+                  onTouchMove={onPointerMove}
+                  onTouchEnd={onPointerUp}
+                >
+                  <div className="logo-track-inner">
+                    {brands.map((brand) => (
+                      <Link
+                        key={brand.id}
+                        to={`/brand/${brand.id}`}
+                        className="logo-item bg-white rounded-card shadow-card hover:shadow-card-hover transition-all duration-300 flex items-center justify-center px-3 py-2"
+                      >
+                        {brand.logo ? (
+                          <img
+                            src={brand.logo}
+                            alt={brand.name}
+                            className="w-full h-full object-contain"
+                            loading="lazy"
+                            draggable={false}
+                          />
+                        ) : (
+                          <span className="font-semibold text-black text-sm text-center">{brand.name}</span>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               </div>
             </section>
           )}
@@ -321,7 +430,7 @@ export default function HomePage() {
                   <span>YouTube</span>
                 </a>
                 <a
-                  href="https://www.instagram.com/beauty_touch729?igsh=MW4zeTZmOHdlY2c5dg=="
+                  href="https://www.instagram.com/mh.beauty.ps?stkn=MW4zeTZmOHdlY2c5dg=="
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-pink-50 text-pink-600 hover:bg-pink-100 transition-colors text-sm font-medium"

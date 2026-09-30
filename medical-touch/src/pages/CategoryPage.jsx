@@ -2,15 +2,19 @@ import React, { useMemo, useEffect, useState } from 'react'
 import { useParams, Link, useLocation } from 'react-router-dom'
 import { ChevronRight, SlidersHorizontal } from 'lucide-react'
 import ProductCard from '../components/ProductCard.jsx'
-import { getCategoryBySlug, getSubcategoryBySlug } from '../data/categories.js'
+import { getCategoryBySlug, getSubcategoryBySlug, categories as staticCategories } from '../data/categories.js'
 import { storage } from '../services/storage.js'
 
 export default function CategoryPage() {
   const { categorySlug, subcategorySlug } = useParams()
   const location = useLocation()
-  const category = getCategoryBySlug(categorySlug)
   const [products, setProducts] = useState([])
-  
+  const [categories, setCategories] = useState(staticCategories)
+
+  const category = useMemo(() => {
+    return categories.find((c) => c.slug === categorySlug) || getCategoryBySlug(categorySlug)
+  }, [categories, categorySlug])
+
   // Parse search query from hash URL
   const searchQuery = useMemo(() => {
     const hash = location.hash
@@ -21,6 +25,18 @@ export default function CategoryPage() {
 
   useEffect(() => {
     storage.getProducts().then((data) => setProducts(data.filter((p) => p.isActive !== false))).catch(() => setProducts([]))
+    storage.getCategories().then((data) => {
+      const merged = [...staticCategories]
+      data.forEach((apiCat) => {
+        const idx = merged.findIndex((c) => c.slug === apiCat.slug)
+        if (idx >= 0) {
+          merged[idx] = { ...merged[idx], ...apiCat, sortOrder: apiCat.sortOrder ?? merged[idx].sortOrder }
+        } else if (!['offers', 'new', 'bestsellers', 'packages'].includes(apiCat.slug)) {
+          merged.push(apiCat)
+        }
+      })
+      setCategories(merged.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)))
+    }).catch(() => setCategories(staticCategories.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))))
   }, [])
 
   const filteredProducts = useMemo(() => {
@@ -54,9 +70,10 @@ export default function CategoryPage() {
     return result.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
   }, [categorySlug, subcategorySlug, products, searchQuery])
 
-  const subcategory = subcategorySlug
-    ? getSubcategoryBySlug(categorySlug, subcategorySlug)
-    : null
+  const subcategory = useMemo(() => {
+    if (!subcategorySlug || !category || !category.subcategories) return null
+    return category.subcategories.find((s) => s.slug === subcategorySlug)
+  }, [category, subcategorySlug])
 
   const pageTitle = subcategory
     ? subcategory.name

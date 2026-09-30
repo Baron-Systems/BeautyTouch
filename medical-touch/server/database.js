@@ -18,13 +18,13 @@ const seedProducts = [
 ]
 
 const categories = [
-  { id: 'cat-injections', slug: 'injections', name: 'الحقن التجميلية', hasSubcategories: true, subcategories: [{ id: 'sub-filler', name: 'فيلر', slug: 'filler' }, { id: 'sub-botox', name: 'بوتكس', slug: 'botox' }, { id: 'sub-skinbooster', name: 'سكين بوستر', slug: 'skinbooster' }, { id: 'sub-mesotherapy', name: 'ميزوثيرابي', slug: 'mesotherapy' }, { id: 'sub-collagen', name: 'محفزات الكولاجين', slug: 'collagen' }] },
-  { id: 'cat-skincare', slug: 'skincare', name: 'العناية بالبشرة', hasSubcategories: false, subcategories: null },
-  { id: 'cat-creams', slug: 'creams', name: 'الكريمات والسيرومات', hasSubcategories: false, subcategories: null },
-  { id: 'cat-devices', slug: 'devices', name: 'أجهزة التجميل', hasSubcategories: false, subcategories: null },
-  { id: 'cat-face-masks', slug: 'face-masks', name: 'ماسكات الوجه', hasSubcategories: false, subcategories: null },
-  { id: 'cat-eye-care', slug: 'eye-care', name: 'العناية بمحيط العين', hasSubcategories: false, subcategories: null },
-  { id: 'cat-face-wash', slug: 'face-wash', name: 'غسولات الوجه', hasSubcategories: false, subcategories: null },
+  { id: 'cat-injections', slug: 'injections', name: 'الحقن التجميلية', sortOrder: 0, hasSubcategories: true, subcategories: [{ id: 'sub-filler', name: 'فيلر', slug: 'filler' }, { id: 'sub-botox', name: 'بوتكس', slug: 'botox' }, { id: 'sub-skinbooster', name: 'سكين بوستر', slug: 'skinbooster' }, { id: 'sub-mesotherapy', name: 'ميزوثيرابي', slug: 'mesotherapy' }, { id: 'sub-collagen', name: 'محفزات الكولاجين', slug: 'collagen' }] },
+  { id: 'cat-skincare', slug: 'skincare', name: 'العناية بالبشرة', sortOrder: 1, hasSubcategories: false, subcategories: null },
+  { id: 'cat-creams', slug: 'creams', name: 'الكريمات والسيرومات', sortOrder: 2, hasSubcategories: false, subcategories: null },
+  { id: 'cat-devices', slug: 'devices', name: 'أجهزة التجميل', sortOrder: 3, hasSubcategories: false, subcategories: null },
+  { id: 'cat-face-masks', slug: 'face-masks', name: 'ماسكات الوجه', sortOrder: 4, hasSubcategories: false, subcategories: null },
+  { id: 'cat-eye-care', slug: 'eye-care', name: 'العناية بمحيط العين', sortOrder: 5, hasSubcategories: false, subcategories: null },
+  { id: 'cat-face-wash', slug: 'face-wash', name: 'غسولات الوجه', sortOrder: 6, hasSubcategories: false, subcategories: null },
 ]
 
 let db = openDatabase()
@@ -111,6 +111,50 @@ function runMigrations() {
     console.log('Migrated: added sortOrder to products')
   }
 
+  // Migrate: add sortOrder to categories if missing
+  try {
+    db.prepare('SELECT sortOrder FROM categories LIMIT 1').get()
+  } catch {
+    db.exec('ALTER TABLE categories ADD COLUMN sortOrder INTEGER DEFAULT 0')
+    console.log('Migrated: added sortOrder to categories')
+  }
+
+  // Migrate: add isActive to categories if missing
+  try {
+    db.prepare('SELECT isActive FROM categories LIMIT 1').get()
+  } catch {
+    db.exec('ALTER TABLE categories ADD COLUMN isActive INTEGER DEFAULT 1')
+    console.log('Migrated: added isActive to categories')
+  }
+
+  // Migrate: populate categories sortOrder if all are zero
+  const allCats = db.prepare('SELECT id, slug FROM categories ORDER BY id ASC').all()
+  const needsSortOrderUpdate = allCats.length > 0 && allCats.every((c) => (c.sortOrder ?? 0) === 0)
+  if (needsSortOrderUpdate) {
+    const update = db.prepare('UPDATE categories SET sortOrder = ? WHERE id = ?')
+    db.transaction(() => {
+      allCats.forEach((cat, index) => {
+        const seedCat = categories.find((c) => c.slug === cat.slug)
+        update.run(seedCat?.sortOrder ?? index, cat.id)
+      })
+    })()
+    console.log('Migrated: populated categories sortOrder')
+  }
+
+  // Normalize products sortOrder per category: 0,1,2,3...
+  // Fixes legacy duplicates where all products had sortOrder = 0
+  const productCategories = db.prepare('SELECT DISTINCT category FROM products').all()
+  const updateProdSort = db.prepare('UPDATE products SET sortOrder = ? WHERE id = ?')
+  db.transaction(() => {
+    productCategories.forEach(({ category }) => {
+      const prods = db.prepare('SELECT id FROM products WHERE category = ? ORDER BY sortOrder ASC, id ASC').all(category)
+      prods.forEach((p, idx) => {
+        updateProdSort.run(idx, p.id)
+      })
+    })
+  })()
+  console.log('Normalized products sortOrder per category')
+
   // Admin table
   db.exec(`
     CREATE TABLE IF NOT EXISTS admin (
@@ -168,16 +212,27 @@ function runMigrations() {
     db.exec('ALTER TABLE orders ADD COLUMN delivery_price INTEGER DEFAULT 0')
     console.log('Migrated: added delivery_price to orders')
   }
+
+  // Migrate: add logo to brands if missing
+  try {
+    db.prepare('SELECT logo FROM brands LIMIT 1').get()
+  } catch {
+    db.exec('ALTER TABLE brands ADD COLUMN logo TEXT')
+    console.log('Migrated: added logo to brands')
+  }
 }
 
 function seedIfEmpty() {
   const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get()
   if (productCount.count === 0) {
     const insertProduct = db.prepare(`
-      INSERT INTO products (name, category, subcategory, price, discountedPrice, image, description, isBestSeller, isNew, isActive)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO products (name, category, subcategory, price, discountedPrice, image, description, isBestSeller, isNew, isActive, sortOrder)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
+    const categoryCounters = {}
     seedProducts.forEach((p) => {
+      const idx = categoryCounters[p.category] ?? 0
+      categoryCounters[p.category] = idx + 1
       insertProduct.run(
         p.name,
         p.category,
@@ -188,7 +243,8 @@ function seedIfEmpty() {
         p.description,
         p.isBestSeller ? 1 : 0,
         p.isNew ? 1 : 0,
-        p.isActive !== false ? 1 : 0
+        p.isActive !== false ? 1 : 0,
+        idx
       )
     })
     console.log('Seeded', seedProducts.length, 'products')
@@ -196,10 +252,10 @@ function seedIfEmpty() {
 
   const catCount = db.prepare('SELECT COUNT(*) as count FROM categories').get()
   if (catCount.count === 0) {
-    const insertCat = db.prepare('INSERT INTO categories (slug, name, subcategories) VALUES (?, ?, ?)')
+    const insertCat = db.prepare('INSERT INTO categories (slug, name, subcategories, sortOrder) VALUES (?, ?, ?, ?)')
     categories.forEach((c) => {
       const subs = c.subcategories ? JSON.stringify(c.subcategories.map(s => ({ id: s.id, name: s.name, slug: s.slug }))) : null
-      insertCat.run(c.slug, c.name, subs)
+      insertCat.run(c.slug, c.name, subs, c.sortOrder ?? 0)
     })
     console.log('Seeded', categories.length, 'categories')
   }
@@ -225,10 +281,10 @@ function seedIfEmpty() {
   }
 
   // Seed new categories if missing
-  const insertCat = db.prepare('INSERT OR IGNORE INTO categories (slug, name, subcategories) VALUES (?, ?, ?)')
+  const insertCat = db.prepare('INSERT OR IGNORE INTO categories (slug, name, subcategories, sortOrder) VALUES (?, ?, ?, ?)')
   categories.forEach((c) => {
     const subs = c.subcategories ? JSON.stringify(c.subcategories.map(s => ({ id: s.id, name: s.name, slug: s.slug }))) : null
-    insertCat.run(c.slug, c.name, subs)
+    insertCat.run(c.slug, c.name, subs, c.sortOrder ?? 0)
   })
 }
 

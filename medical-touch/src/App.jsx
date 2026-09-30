@@ -10,9 +10,11 @@ import CategoryPage from './pages/CategoryPage.jsx'
 import ProductDetailPage from './pages/ProductDetailPage.jsx'
 import CartPage from './pages/CartPage.jsx'
 import WishlistPage from './pages/WishlistPage.jsx'
+import AdminLayout from './components/AdminLayout.jsx'
 import AdminLoginPage from './pages/admin/AdminLoginPage.jsx'
 import AdminProductsPage from './pages/admin/AdminProductsPage.jsx'
 import AdminProductForm from './pages/admin/AdminProductForm.jsx'
+import AdminCategoryProductsPage from './pages/admin/AdminCategoryProductsPage.jsx'
 import AdminOrdersPage from './pages/admin/AdminOrdersPage.jsx'
 import AdminProfitsPage from './pages/admin/AdminProfitsPage.jsx'
 import AdminDeliveryPage from './pages/admin/AdminDeliveryPage.jsx'
@@ -39,61 +41,23 @@ function AppContent() {
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route
-          path="/admin/products"
+          path="/admin"
           element={
             <AdminRoute>
-              <AdminProductsPage />
+              <AdminLayout />
             </AdminRoute>
           }
-        />
-        <Route
-          path="/admin/products/new"
-          element={
-            <AdminRoute>
-              <AdminProductForm />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/products/edit/:productId"
-          element={
-            <AdminRoute>
-              <AdminProductForm />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/orders"
-          element={
-            <AdminRoute>
-              <AdminOrdersPage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/profits"
-          element={
-            <AdminRoute>
-              <AdminProfitsPage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/delivery"
-          element={
-            <AdminRoute>
-              <AdminDeliveryPage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/brands"
-          element={
-            <AdminRoute>
-              <AdminBrandsPage />
-            </AdminRoute>
-          }
-        />
+        >
+          <Route index element={<Navigate to="/admin/products" replace />} />
+          <Route path="products" element={<AdminProductsPage />} />
+          <Route path="products/new" element={<AdminProductForm />} />
+          <Route path="products/edit/:productId" element={<AdminProductForm />} />
+          <Route path="products/category/:categoryId" element={<AdminCategoryProductsPage />} />
+          <Route path="orders" element={<AdminOrdersPage />} />
+          <Route path="profits" element={<AdminProfitsPage />} />
+          <Route path="delivery" element={<AdminDeliveryPage />} />
+          <Route path="brands" element={<AdminBrandsPage />} />
+        </Route>
 
         {/* Customer Routes */}
         <Route

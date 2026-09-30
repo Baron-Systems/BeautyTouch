@@ -140,3 +140,45 @@
     transform: translateY(0);
   }
 }
+
+.logo-track {
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.logo-track:active {
+  cursor: grabbing;
+}
+
+.logo-track-inner {
+  display: flex;
+  width: max-content;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .logo-track-inner {
+    gap: 1.5rem;
+  }
+}
+
+.logo-item {
+  flex: 0 0 auto;
+  width: 140px;
+  height: 80px;
+}
+
+@media (min-width: 640px) {
+  .logo-item {
+    width: 160px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .logo-item {
+    width: 180px;
+  }
+}

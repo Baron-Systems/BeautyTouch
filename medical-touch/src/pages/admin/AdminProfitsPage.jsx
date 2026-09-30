@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Package, ClipboardList, Truck, LogOut, Lock, X, Calendar, TrendingUp, Search, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Calendar, TrendingUp, Search } from 'lucide-react'
 import { storage } from '../../services/storage.js'
-import { useAuth } from '../../context/AuthContext.jsx'
-import Logo from '../../components/Logo.jsx'
 
 const statusMap = {
   pending: { label: 'قيد الانتظار', color: 'text-amber-600 bg-amber-50' },
@@ -22,18 +19,10 @@ function formatDateInput(date) {
 }
 
 export default function AdminProfitsPage() {
-  const { logout } = useAuth()
-  const navigate = useNavigate()
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [report, setReport] = useState({ revenue: 0, cost: 0, profit: 0, count: 0, byStatus: [], orders: [] })
   const [loading, setLoading] = useState(false)
-  const [showPasswordModal, setShowPasswordModal] = useState(false)
-  const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' })
-  const [passwordError, setPasswordError] = useState('')
-  const [passwordSuccess, setPasswordSuccess] = useState(false)
-  const [changingPassword, setChangingPassword] = useState(false)
-
   useEffect(() => {
     const now = new Date()
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -54,93 +43,10 @@ export default function AdminProfitsPage() {
     }
   }, [from, to])
 
-  const handleLogout = () => {
-    logout()
-    navigate('/admin/login')
-  }
-
-  const handleChangePassword = async () => {
-    setPasswordError('')
-    setPasswordSuccess(false)
-    if (!passwordForm.current || !passwordForm.new || !passwordForm.confirm) {
-      setPasswordError('يرجى ملء جميع الحقول')
-      return
-    }
-    if (passwordForm.new !== passwordForm.confirm) {
-      setPasswordError('كلمة المرور الجديدة غير متطابقة')
-      return
-    }
-    if (passwordForm.new.length < 4) {
-      setPasswordError('كلمة المرور الجديدة يجب أن تكون 4 أحرف على الأقل')
-      return
-    }
-    setChangingPassword(true)
-    const result = await storage.changeAdminPassword(passwordForm.current, passwordForm.new)
-    if (result.success) {
-      setPasswordSuccess(true)
-      setPasswordForm({ current: '', new: '', confirm: '' })
-      setTimeout(() => {
-        setShowPasswordModal(false)
-        setPasswordSuccess(false)
-      }, 1500)
-    } else {
-      setPasswordError(result.error || 'فشل تغيير كلمة المرور')
-    }
-    setChangingPassword(false)
-  }
-
   const average = report.count > 0 ? Math.round(report.revenue / report.count) : 0
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
-            <Link to="/admin/products">
-              <Logo size="small" />
-            </Link>
-            <div className="flex items-center gap-3">
-              <Link
-                to="/admin/products"
-                className="flex items-center gap-2 text-sm px-4 py-2 bg-white border border-gray-200 rounded-button hover:border-gold hover:text-gold transition-colors"
-              >
-                <Package className="w-4 h-4" />
-                <span>المنتجات</span>
-              </Link>
-              <Link
-                to="/admin/orders"
-                className="flex items-center gap-2 text-sm px-4 py-2 bg-white border border-gray-200 rounded-button hover:border-gold hover:text-gold transition-colors"
-              >
-                <ClipboardList className="w-4 h-4" />
-                <span>الطلبات</span>
-              </Link>
-              <Link
-                to="/admin/delivery"
-                className="flex items-center gap-2 text-sm px-4 py-2 bg-white border border-gray-200 rounded-button hover:border-gold hover:text-gold transition-colors"
-              >
-                <Truck className="w-4 h-4" />
-                <span>التوصيل</span>
-              </Link>
-              <button
-                onClick={() => setShowPasswordModal(true)}
-                className="p-2 text-black-light hover:text-gold transition-colors"
-                aria-label="تغيير كلمة المرور"
-                title="تغيير كلمة المرور"
-              >
-                <Lock className="w-5 h-5" />
-              </button>
-              <button
-                onClick={handleLogout}
-                className="p-2 text-black-light hover:text-red-500 transition-colors"
-                aria-label="تسجيل الخروج"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <h1 className="text-2xl font-bold text-black mb-6">تقرير الأرباح</h1>
 
@@ -276,79 +182,6 @@ export default function AdminProfitsPage() {
         )}
       </div>
 
-      {showPasswordModal && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowPasswordModal(false)} />
-          <div className="relative bg-white rounded-card shadow-xl w-full max-w-md">
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-black">تغيير كلمة المرور</h2>
-              <button
-                onClick={() => setShowPasswordModal(false)}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <X className="w-5 h-5 text-black-light" />
-              </button>
-            </div>
-            <div className="p-5 space-y-4">
-              {passwordSuccess && (
-                <div className="bg-green-50 text-green-700 rounded-lg p-3 text-sm text-center">
-                  تم تغيير كلمة المرور بنجاح
-                </div>
-              )}
-              {passwordError && (
-                <div className="bg-red-50 text-red-600 rounded-lg p-3 text-sm text-center">
-                  {passwordError}
-                </div>
-              )}
-              <div>
-                <label className="block text-sm font-medium text-black mb-1.5">كلمة المرور الحالية</label>
-                <input
-                  type="password"
-                  value={passwordForm.current}
-                  onChange={(e) => setPasswordForm((p) => ({ ...p, current: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold text-sm"
-                  placeholder="أدخل كلمة المرور الحالية"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-1.5">كلمة المرور الجديدة</label>
-                <input
-                  type="password"
-                  value={passwordForm.new}
-                  onChange={(e) => setPasswordForm((p) => ({ ...p, new: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold text-sm"
-                  placeholder="أدخل كلمة المرور الجديدة"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black mb-1.5">تأكيد كلمة المرور الجديدة</label>
-                <input
-                  type="password"
-                  value={passwordForm.confirm}
-                  onChange={(e) => setPasswordForm((p) => ({ ...p, confirm: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold text-sm"
-                  placeholder="أعد إدخال كلمة المرور الجديدة"
-                />
-              </div>
-            </div>
-            <div className="flex items-center justify-end gap-2 p-5 border-t border-gray-100">
-              <button
-                onClick={() => setShowPasswordModal(false)}
-                className="px-5 py-2.5 text-sm font-medium text-black-light hover:text-black transition-colors"
-              >
-                إلغاء
-              </button>
-              <button
-                onClick={handleChangePassword}
-                disabled={changingPassword}
-                className="btn-gold px-5 py-2.5 text-sm disabled:opacity-50"
-              >
-                {changingPassword ? 'جاري الحفظ...' : 'حفظ'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   )
 }
