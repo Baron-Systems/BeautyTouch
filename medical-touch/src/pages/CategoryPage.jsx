@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react'
+import React, { useMemo, useEffect, useState, useCallback } from 'react'
 import { useParams, Link, useLocation } from 'react-router-dom'
 import { ChevronRight, SlidersHorizontal } from 'lucide-react'
 import ProductCard from '../components/ProductCard.jsx'
@@ -24,7 +24,7 @@ export default function CategoryPage() {
     return params.get('search') || ''
   }, [location.hash])
 
-  useEffect(() => {
+  const loadCatalog = useCallback(() => {
     storage.getProducts().then((data) => setProducts(data.filter((p) => p.isActive !== false))).catch(() => setProducts([]))
     storage.getCategories().then((data) => {
       const merged = [...staticCategories]
@@ -39,6 +39,11 @@ export default function CategoryPage() {
       setCategories(merged.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)))
     }).catch(() => setCategories(staticCategories.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))))
   }, [])
+
+  useEffect(() => {
+    loadCatalog()
+    return storage.onCatalogChange(loadCatalog)
+  }, [loadCatalog])
 
   const filteredProducts = useMemo(() => {
     if (!category) return []

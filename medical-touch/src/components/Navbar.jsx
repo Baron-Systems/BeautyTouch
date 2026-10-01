@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ShoppingBag, Heart, Menu, X, ClipboardList, Download, MoreVertical, ArrowLeft, Sun, Moon, Search } from 'lucide-react'
 import Logo from './Logo.jsx'
@@ -19,7 +19,7 @@ export default function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  useEffect(() => {
+  const loadCategories = useCallback(() => {
     storage.getCategories()
       .then((data) => {
         const merged = [...staticCategories]
@@ -35,6 +35,13 @@ export default function Navbar() {
       })
       .catch(() => setCategories(staticCategories.filter((c) => c.isActive !== false).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))))
   }, [])
+
+  useEffect(() => {
+    loadCategories()
+    return storage.onCatalogChange((kind) => {
+      if (kind === 'categories') loadCategories()
+    })
+  }, [loadCategories])
 
   // Sync search query with URL params
   useEffect(() => {

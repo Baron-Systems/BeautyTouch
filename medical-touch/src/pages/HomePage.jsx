@@ -43,7 +43,7 @@ export default function HomePage() {
     return params.get('search') || ''
   }, [location.hash])
 
-  useEffect(() => {
+  const loadProducts = useCallback(() => {
     storage.getProducts()
       .then((data) => {
         const sorted = data
@@ -52,7 +52,9 @@ export default function HomePage() {
         setProducts(sorted)
       })
       .catch(() => setProducts([]))
+  }, [])
 
+  const loadCategories = useCallback(() => {
     storage.getCategories()
       .then((data) => {
         const merged = [...staticCategories]
@@ -67,7 +69,18 @@ export default function HomePage() {
         setCategories(merged.filter((c) => c.isActive !== false).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)))
       })
       .catch(() => setCategories(staticCategories.filter((c) => c.isActive !== false).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))))
+  }, [])
 
+  useEffect(() => {
+    loadProducts()
+    loadCategories()
+    return storage.onCatalogChange((kind) => {
+      if (kind === 'categories') loadCategories()
+      else loadProducts()
+    })
+  }, [loadProducts, loadCategories])
+
+  useEffect(() => {
     storage.getBrands()
       .then((data) => setBrands(data.sort((a, b) => a.name.localeCompare(b.name, 'ar'))))
       .catch(() => setBrands([]))

@@ -3,8 +3,31 @@ import { api } from './api.js'
 const CART_KEY = 'medical_touch_cart'
 const WISHLIST_KEY = 'medical_touch_wishlist'
 const AUTH_TOKEN_KEY = 'medical_touch_auth_token'
+const CATALOG_SYNC_KEY = 'mt_catalog_updated'
+
+const notifyCatalog = (kind) => {
+  try {
+    localStorage.setItem(CATALOG_SYNC_KEY, JSON.stringify({ kind, at: Date.now() }))
+  } catch {
+    // ignore
+  }
+}
 
 export const storage = {
+  // Cross-tab sync: customer pages refetch when admin edits data in another tab
+  onCatalogChange: (handler) => {
+    const onStorage = (e) => {
+      if (e.key !== CATALOG_SYNC_KEY || !e.newValue) return
+      try {
+        handler(JSON.parse(e.newValue).kind)
+      } catch {
+        // ignore
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  },
+
   // Products (API)
   getProducts: async () => {
     try {
@@ -35,48 +58,66 @@ export const storage = {
     }
   },
   addProduct: async (product) => {
-    return await api.createProduct(product)
+    const res = await api.createProduct(product)
+    notifyCatalog('products')
+    return res
   },
   updateProduct: async (id, updates) => {
-    return await api.updateProduct(id, updates)
+    const res = await api.updateProduct(id, updates)
+    notifyCatalog('products')
+    return res
   },
   deleteProduct: async (id) => {
-    return await api.deleteProduct(id)
+    const res = await api.deleteProduct(id)
+    notifyCatalog('products')
+    return res
   },
   toggleProduct: async (id) => {
-    return await api.toggleProduct(id)
+    const res = await api.toggleProduct(id)
+    notifyCatalog('products')
+    return res
   },
   reorderCategories: async (ids) => {
     try {
-      return await api.reorderCategories(ids)
+      const res = await api.reorderCategories(ids)
+      notifyCatalog('categories')
+      return res
     } catch (err) {
       return { success: false, error: err.message }
     }
   },
   reorderProducts: async (ids) => {
     try {
-      return await api.reorderProducts(ids)
+      const res = await api.reorderProducts(ids)
+      notifyCatalog('products')
+      return res
     } catch (err) {
       return { success: false, error: err.message }
     }
   },
   moveProduct: async (productId, category, subcategory, sortOrder) => {
     try {
-      return await api.moveProduct(productId, category, subcategory, sortOrder)
+      const res = await api.moveProduct(productId, category, subcategory, sortOrder)
+      notifyCatalog('products')
+      return res
     } catch (err) {
       return { success: false, error: err.message }
     }
   },
   updateCategory: async (id, data) => {
     try {
-      return await api.updateCategory(id, data)
+      const res = await api.updateCategory(id, data)
+      notifyCatalog('categories')
+      return res
     } catch (err) {
       return { success: false, error: err.message }
     }
   },
   toggleCategory: async (id) => {
     try {
-      return await api.toggleCategory(id)
+      const res = await api.toggleCategory(id)
+      notifyCatalog('categories')
+      return res
     } catch (err) {
       return { success: false, error: err.message }
     }
