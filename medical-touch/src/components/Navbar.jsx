@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ShoppingBag, Heart, Menu, X, ClipboardList, Download, MoreVertical, ArrowLeft, Sun, Moon, Search } from 'lucide-react'
 import Logo from './Logo.jsx'
 import { useCart } from '../context/CartContext.jsx'
 import { useTheme } from '../context/ThemeContext.jsx'
+import { categories as staticCategories } from '../data/categories.js'
+import { storage } from '../services/storage.js'
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -11,10 +13,28 @@ export default function Navbar() {
   const [installPrompt, setInstallPrompt] = useState(null)
   const [isInstalled, setIsInstalled] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [categories, setCategories] = useState(staticCategories)
   const { cartCount, wishlist } = useCart()
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    storage.getCategories()
+      .then((data) => {
+        const merged = [...staticCategories]
+        data.forEach((apiCat) => {
+          const idx = merged.findIndex((c) => c.slug === apiCat.slug)
+          if (idx >= 0) {
+            merged[idx] = { ...merged[idx], ...apiCat, sortOrder: apiCat.sortOrder ?? merged[idx].sortOrder }
+          } else {
+            merged.push(apiCat)
+          }
+        })
+        setCategories(merged.filter((c) => c.isActive !== false).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)))
+      })
+      .catch(() => setCategories(staticCategories.filter((c) => c.isActive !== false).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))))
+  }, [])
 
   // Sync search query with URL params
   useEffect(() => {
@@ -98,25 +118,22 @@ export default function Navbar() {
 
   const isAdmin = location.pathname.startsWith('/admin')
 
-  const navLinks = [
-    { to: '/', label: 'الرئيسية' },
-    { to: '/category/bestsellers', label: 'الأكثر مبيعاً' },
-    { to: '/category/new', label: 'جديدنا' },
-    { to: '/category/offers', label: 'العروض' },
-    { to: '/category/packages', label: 'البكجات' },
-    { to: '/category/skincare', label: 'العناية بالبشرة' },
-    { to: '/category/haircare', label: 'العناية بالشعر' },
-    { to: '/category/face-masks', label: 'ماسكات الوجه' },
-    { to: '/category/eye-care', label: 'العناية بمحيط العين' },
-    { to: '/category/bodycare', label: 'العناية بالجسم' },
-    { to: '/category/creams', label: 'الكريمات والسيرومات' },
-    { to: '/category/sunscreen', label: 'واقيات الشمس' },
-    { to: '/category/face-wash', label: 'غسولات الوجه' },
-    { to: '/category/devices', label: 'أجهزة التجميل' },
-    { to: '/category/aftercare', label: 'العناية بعد الإجراءات' },
-    { to: '/category/injections', label: 'الحقن التجميلية' },
-    { to: '/category/clinic-supplies', label: 'مستلزمات العيادات' },
-  ]
+  const navLinks = useMemo(() => {
+    const links = [
+      { to: '/', label: 'الرئيسية' },
+      { to: '/category/bestsellers', label: 'الأكثر مبيعاً' },
+      { to: '/category/new', label: 'جديدنا' },
+      { to: '/category/offers', label: 'العروض' },
+    ]
+    categories
+      .filter((c) => !['offers', 'new', 'bestsellers'].includes(c.slug))
+      .forEach((cat) => {
+        if (cat.isActive !== false) {
+          links.push({ to: `/category/${cat.slug}`, label: cat.name })
+        }
+      })
+    return links
+  }, [categories])
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">

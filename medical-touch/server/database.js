@@ -18,13 +18,22 @@ const seedProducts = [
 ]
 
 const categories = [
+  { id: 'cat-offers', slug: 'offers', name: 'العروض', sortOrder: -4, hasSubcategories: false, subcategories: null },
+  { id: 'cat-new', slug: 'new', name: 'جديدنا', sortOrder: -3, hasSubcategories: false, subcategories: null },
+  { id: 'cat-bestsellers', slug: 'bestsellers', name: 'الأكثر مبيعاً', sortOrder: -2, hasSubcategories: false, subcategories: null },
+  { id: 'cat-packages', slug: 'packages', name: 'البكجات', sortOrder: -1, hasSubcategories: false, subcategories: null },
   { id: 'cat-injections', slug: 'injections', name: 'الحقن التجميلية', sortOrder: 0, hasSubcategories: true, subcategories: [{ id: 'sub-filler', name: 'فيلر', slug: 'filler' }, { id: 'sub-botox', name: 'بوتكس', slug: 'botox' }, { id: 'sub-skinbooster', name: 'سكين بوستر', slug: 'skinbooster' }, { id: 'sub-mesotherapy', name: 'ميزوثيرابي', slug: 'mesotherapy' }, { id: 'sub-collagen', name: 'محفزات الكولاجين', slug: 'collagen' }] },
   { id: 'cat-skincare', slug: 'skincare', name: 'العناية بالبشرة', sortOrder: 1, hasSubcategories: false, subcategories: null },
-  { id: 'cat-creams', slug: 'creams', name: 'الكريمات والسيرومات', sortOrder: 2, hasSubcategories: false, subcategories: null },
-  { id: 'cat-devices', slug: 'devices', name: 'أجهزة التجميل', sortOrder: 3, hasSubcategories: false, subcategories: null },
-  { id: 'cat-face-masks', slug: 'face-masks', name: 'ماسكات الوجه', sortOrder: 4, hasSubcategories: false, subcategories: null },
-  { id: 'cat-eye-care', slug: 'eye-care', name: 'العناية بمحيط العين', sortOrder: 5, hasSubcategories: false, subcategories: null },
-  { id: 'cat-face-wash', slug: 'face-wash', name: 'غسولات الوجه', sortOrder: 6, hasSubcategories: false, subcategories: null },
+  { id: 'cat-haircare', slug: 'haircare', name: 'العناية بالشعر', sortOrder: 2, hasSubcategories: false, subcategories: null },
+  { id: 'cat-face-masks', slug: 'face-masks', name: 'ماسكات الوجه', sortOrder: 3, hasSubcategories: false, subcategories: null },
+  { id: 'cat-eye-care', slug: 'eye-care', name: 'العناية بمحيط العين', sortOrder: 4, hasSubcategories: false, subcategories: null },
+  { id: 'cat-bodycare', slug: 'bodycare', name: 'العناية بالجسم', sortOrder: 5, hasSubcategories: false, subcategories: null },
+  { id: 'cat-creams', slug: 'creams', name: 'الكريمات والسيرومات', sortOrder: 6, hasSubcategories: false, subcategories: null },
+  { id: 'cat-sunscreen', slug: 'sunscreen', name: 'واقيات الشمس', sortOrder: 7, hasSubcategories: false, subcategories: null },
+  { id: 'cat-face-wash', slug: 'face-wash', name: 'غسولات الوجه', sortOrder: 8, hasSubcategories: false, subcategories: null },
+  { id: 'cat-devices', slug: 'devices', name: 'أجهزة التجميل', sortOrder: 9, hasSubcategories: false, subcategories: null },
+  { id: 'cat-aftercare', slug: 'aftercare', name: 'العناية بعد الإجراءات', sortOrder: 10, hasSubcategories: false, subcategories: null },
+  { id: 'cat-clinic-supplies', slug: 'clinic-supplies', name: 'مستلزمات العيادات', sortOrder: 11, hasSubcategories: false, subcategories: null },
 ]
 
 let db = openDatabase()

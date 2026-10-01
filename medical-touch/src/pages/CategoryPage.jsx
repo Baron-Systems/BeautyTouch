@@ -12,7 +12,8 @@ export default function CategoryPage() {
   const [categories, setCategories] = useState(staticCategories)
 
   const category = useMemo(() => {
-    return categories.find((c) => c.slug === categorySlug) || getCategoryBySlug(categorySlug)
+    const cat = categories.find((c) => c.slug === categorySlug) || getCategoryBySlug(categorySlug)
+    return cat && cat.isActive === false ? null : cat
   }, [categories, categorySlug])
 
   // Parse search query from hash URL

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Package, ClipboardList, Truck, Tag, TrendingUp, Lock, LogOut, X } from 'lucide-react'
+import { Package, ClipboardList, Truck, Tag, TrendingUp, Lock, LogOut, X, LayoutGrid } from 'lucide-react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { storage } from '../services/storage.js'
 import Logo from './Logo.jsx'
@@ -10,6 +10,7 @@ const navItems = [
   { to: '/admin/orders', label: 'الطلبات', icon: ClipboardList },
   { to: '/admin/delivery', label: 'التوصيل', icon: Truck },
   { to: '/admin/brands', label: 'الماركات', icon: Tag },
+  { to: '/admin/categories', label: 'التصنيفات', icon: LayoutGrid },
   { to: '/admin/profits', label: 'الأرباح', icon: TrendingUp },
 ]
 

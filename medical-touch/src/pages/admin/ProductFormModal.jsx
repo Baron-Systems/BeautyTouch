@@ -35,10 +35,16 @@ export default function ProductFormModal({ isOpen, onClose, onSaved, productId =
     if (!isOpen) return
     storage.getBrands().then(setBrands).catch(() => setBrands([]))
     storage.getCategories().then((data) => {
-      const sorted = data
-        .filter((c) => !['offers', 'new', 'bestsellers', 'packages'].includes(c.slug))
-        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-      if (sorted.length > 0) setCategories(sorted)
+      const merged = [...staticCategories]
+      data.forEach((apiCat) => {
+        const idx = merged.findIndex((c) => c.slug === apiCat.slug)
+        if (idx >= 0) {
+          merged[idx] = { ...merged[idx], ...apiCat, sortOrder: apiCat.sortOrder ?? merged[idx].sortOrder }
+        } else {
+          merged.push(apiCat)
+        }
+      })
+      setCategories(merged.filter((c) => !['offers', 'new', 'bestsellers', 'packages'].includes(c.slug)).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)))
     }).catch(() => {})
   }, [isOpen])
 

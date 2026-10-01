@@ -19,6 +19,7 @@ import AdminOrdersPage from './pages/admin/AdminOrdersPage.jsx'
 import AdminProfitsPage from './pages/admin/AdminProfitsPage.jsx'
 import AdminDeliveryPage from './pages/admin/AdminDeliveryPage.jsx'
 import AdminBrandsPage from './pages/admin/AdminBrandsPage.jsx'
+import AdminCategoriesPage from './pages/admin/AdminCategoriesPage.jsx'
 import BrandPage from './pages/BrandPage.jsx'
 import MyOrdersPage from './pages/MyOrdersPage.jsx'
 
@@ -57,6 +58,7 @@ function AppContent() {
           <Route path="profits" element={<AdminProfitsPage />} />
           <Route path="delivery" element={<AdminDeliveryPage />} />
           <Route path="brands" element={<AdminBrandsPage />} />
+          <Route path="categories" element={<AdminCategoriesPage />} />
         </Route>
 
         {/* Customer Routes */}

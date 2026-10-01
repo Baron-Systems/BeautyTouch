@@ -5,16 +5,23 @@ import ProductCard from '../components/ProductCard.jsx'
 import { categories as staticCategories } from '../data/categories.js'
 import { storage } from '../services/storage.js'
 
-const promoCategories = [
+const allPromoCategories = [
   { slug: 'offers', name: 'العروض', icon: Zap, color: 'from-gold to-gold-dark', desc: 'أفضل العروض المحدودة' },
   { slug: 'new', name: 'جديدنا', icon: Sparkles, color: 'from-gold-light to-gold', desc: 'آخر المنتجات الواصلة' },
   { slug: 'bestsellers', name: 'الأكثر مبيعاً', icon: TrendingUp, color: 'from-black to-black-light', desc: 'المنتجات الأكثر طلباً' },
+  { slug: 'packages', name: 'البكجات', icon: ShoppingBag, color: 'from-gold to-gold-dark', desc: 'بكجات متكاملة' },
   { slug: 'injections', name: 'الحقن التجميلية', icon: Star, color: 'from-gold to-gold-dark', desc: 'فيلر، بوتكس، سكين بوستر' },
   { slug: 'skincare', name: 'العناية بالبشرة', icon: Sparkles, color: 'from-black to-black-light', desc: 'منتجات متخصصة للبشرة' },
-  { slug: 'creams', name: 'الكريمات والسيرومات', icon: ShoppingBag, color: 'from-gold to-gold-dark', desc: 'أفضل الماركات العالمية' },
+  { slug: 'haircare', name: 'العناية بالشعر', icon: Sparkles, color: 'from-gold to-gold-dark', desc: 'منتجات متخصصة للشعر' },
   { slug: 'face-masks', name: 'ماسكات الوجه', icon: Sparkles, color: 'from-gold to-gold-dark', desc: 'ماسكات متخصصة للبشرة' },
   { slug: 'eye-care', name: 'العناية بمحيط العين', icon: Sparkles, color: 'from-black to-black-light', desc: 'كريمات وسيرومات العين' },
+  { slug: 'bodycare', name: 'العناية بالجسم', icon: ShoppingBag, color: 'from-gold to-gold-dark', desc: 'منتجات متخصصة للجسم' },
+  { slug: 'creams', name: 'الكريمات والسيرومات', icon: ShoppingBag, color: 'from-gold to-gold-dark', desc: 'أفضل الماركات العالمية' },
+  { slug: 'sunscreen', name: 'واقيات الشمس', icon: Sparkles, color: 'from-gold to-gold-dark', desc: 'حماية من أشعة الشمس' },
   { slug: 'face-wash', name: 'غسولات الوجه', icon: ShoppingBag, color: 'from-gold to-gold-dark', desc: 'غسولات منظفة للبشرة' },
+  { slug: 'devices', name: 'أجهزة التجميل', icon: Sparkles, color: 'from-black to-black-light', desc: 'أحدث أجهزة التجميل' },
+  { slug: 'aftercare', name: 'العناية بعد الإجراءات', icon: ShoppingBag, color: 'from-gold to-gold-dark', desc: 'منتجات ما بعد الإجراء' },
+  { slug: 'clinic-supplies', name: 'مستلزمات العيادات', icon: Sparkles, color: 'from-black to-black-light', desc: 'مستلزمات طبية للعيادات' },
 ]
 
 
@@ -48,10 +55,18 @@ export default function HomePage() {
 
     storage.getCategories()
       .then((data) => {
-        const sorted = data.filter((c) => c.isActive !== false).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-        setCategories(sorted)
+        const merged = [...staticCategories]
+        data.forEach((apiCat) => {
+          const idx = merged.findIndex((c) => c.slug === apiCat.slug)
+          if (idx >= 0) {
+            merged[idx] = { ...merged[idx], ...apiCat, sortOrder: apiCat.sortOrder ?? merged[idx].sortOrder }
+          } else {
+            merged.push(apiCat)
+          }
+        })
+        setCategories(merged.filter((c) => c.isActive !== false).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)))
       })
-      .catch(() => setCategories(staticCategories.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))))
+      .catch(() => setCategories(staticCategories.filter((c) => c.isActive !== false).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))))
 
     storage.getBrands()
       .then((data) => setBrands(data.sort((a, b) => a.name.localeCompare(b.name, 'ar'))))
@@ -184,6 +199,13 @@ export default function HomePage() {
       p.category.toLowerCase().includes(query)
     )
   }, [products, searchQuery])
+
+  // Show promo grid only for categories that are active in the merged list
+  const promoCategories = useMemo(() => {
+    return allPromoCategories.filter((promo) =>
+      categories.some((c) => c.slug === promo.slug && c.isActive !== false)
+    )
+  }, [categories])
 
   return (
     <div className="space-y-16">
