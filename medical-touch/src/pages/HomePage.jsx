@@ -200,11 +200,12 @@ export default function HomePage() {
     )
   }, [products, searchQuery])
 
-  // Show promo grid only for categories that are active in the merged list
+  // Show promo grid only for categories that are active in the merged list, ordered by sortOrder
   const promoCategories = useMemo(() => {
-    return allPromoCategories.filter((promo) =>
-      categories.some((c) => c.slug === promo.slug && c.isActive !== false)
-    )
+    const orderOf = (slug) => categories.find((c) => c.slug === slug)?.sortOrder ?? 0
+    return allPromoCategories
+      .filter((promo) => categories.some((c) => c.slug === promo.slug && c.isActive !== false))
+      .sort((a, b) => orderOf(a.slug) - orderOf(b.slug))
   }, [categories])
 
   return (

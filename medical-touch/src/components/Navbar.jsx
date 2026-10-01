@@ -119,18 +119,20 @@ export default function Navbar() {
   const isAdmin = location.pathname.startsWith('/admin')
 
   const navLinks = useMemo(() => {
-    const links = [
-      { to: '/', label: 'الرئيسية' },
-      { to: '/category/bestsellers', label: 'الأكثر مبيعاً' },
-      { to: '/category/new', label: 'جديدنا' },
-      { to: '/category/offers', label: 'العروض' },
+    const specials = [
+      { slug: 'bestsellers', label: 'الأكثر مبيعاً' },
+      { slug: 'new', label: 'جديدنا' },
+      { slug: 'offers', label: 'العروض' },
     ]
+    const links = [{ to: '/', label: 'الرئيسية' }]
+    specials.forEach((s) => {
+      const cat = categories.find((c) => c.slug === s.slug)
+      if (cat) links.push({ to: `/category/${s.slug}`, label: cat.name || s.label })
+    })
     categories
-      .filter((c) => !['offers', 'new', 'bestsellers'].includes(c.slug))
+      .filter((c) => !specials.some((s) => s.slug === c.slug))
       .forEach((cat) => {
-        if (cat.isActive !== false) {
-          links.push({ to: `/category/${cat.slug}`, label: cat.name })
-        }
+        links.push({ to: `/category/${cat.slug}`, label: cat.name })
       })
     return links
   }, [categories])
