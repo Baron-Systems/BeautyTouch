@@ -123,7 +123,7 @@ export default function AdminProductsPage() {
         const [cats, prods] = await Promise.all([storage.getCategories(), storage.getAdminProducts()])
         if (!mounted) return
         const realCategories = cats
-          .filter((c) => !['offers', 'new', 'bestsellers', 'packages'].includes(c.slug))
+          .filter((c) => !['offers', 'new', 'bestsellers'].includes(c.slug))
           .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
         setCategories(realCategories)
         setProducts(prods)

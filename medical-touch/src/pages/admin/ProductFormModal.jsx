@@ -44,7 +44,7 @@ export default function ProductFormModal({ isOpen, onClose, onSaved, productId =
           merged.push(apiCat)
         }
       })
-      setCategories(merged.filter((c) => !['offers', 'new', 'bestsellers', 'packages'].includes(c.slug)).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)))
+      setCategories(merged.filter((c) => !['offers', 'new', 'bestsellers'].includes(c.slug)).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)))
     }).catch(() => {})
   }, [isOpen])
 
